@@ -1,31 +1,54 @@
-
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
 body,
 #root {
   margin: 0;
-  background: #f6f8fb;
+  min-height: 100%;
+  background: #f5f8fc;
   color: #0f2942;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  line-height: 1.5;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {
   color: #1257c9;
 }
 
+/* =========================
+   NAVIGATION
+========================= */
+
 .nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: #ffffff;
+  min-height: 68px;
+  padding: 14px 32px;
+  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid #dbe4ee;
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 10;
+  backdrop-filter: blur(10px);
 }
 
 .nav .brand {
@@ -33,82 +56,148 @@ a {
   font-size: 1.05rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  color: #0f2942;
+  letter-spacing: -0.01em;
 }
 
 .nav .links {
   display: flex;
-  gap: 22px;
+  align-items: center;
+  gap: 26px;
   font-size: 0.9rem;
   color: #5b7290;
 }
 
 .nav .links span {
   cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav .links span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 0;
+  height: 2px;
+  background: #1257c9;
+  transition: width 0.2s ease;
 }
 
 .nav .links span:hover {
   color: #1257c9;
 }
 
-.wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 20px 60px;
+.nav .links span:hover::after {
+  width: 100%;
 }
+
+/* =========================
+   MAIN CONTAINER
+========================= */
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 70px;
+}
+
+/* =========================
+   HERO
+========================= */
 
 .hero {
   text-align: center;
-  padding: 64px 20px 36px;
+  padding: 76px 20px 48px;
 }
 
 .hero h1 {
-  font-size: 2.3rem;
-  margin: 0 0 12px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  max-width: 850px;
+  margin: 0 auto 16px;
+  font-size: clamp(2rem, 5vw, 3.15rem);
+  line-height: 1.12;
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  color: #0f2942;
 }
 
 .hero p {
+  max-width: 650px;
+  margin: 0 auto 32px;
   color: #5b7290;
   font-size: 1.05rem;
-  max-width: 560px;
-  margin: 0 auto 30px;
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
+/* =========================
+   SEARCH
+========================= */
+
 .searchBox {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
   display: flex;
   gap: 10px;
+  padding: 7px;
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(15, 41, 66, 0.08);
 }
 
 .searchBox input {
   flex: 1;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1.5px solid #dbe4ee;
-  background: #ffffff;
+  min-width: 0;
+  padding: 15px 16px;
+  border: none;
+  outline: none;
+  border-radius: 11px;
+  background: transparent;
   color: #0f2942;
   font-size: 1rem;
-  font-family: inherit;
+}
+
+.searchBox input::placeholder {
+  color: #8b9caf;
+}
+
+.searchBox input:focus {
+  background: #f8faff;
 }
 
 .searchBox button {
-  padding: 16px 24px;
-  border-radius: 12px;
+  padding: 14px 25px;
+  border-radius: 11px;
   border: none;
   background: #1257c9;
-  color: #fff;
+  color: #ffffff;
   font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
+.searchBox button:hover {
+  background: #0c3f96;
+  box-shadow: 0 5px 14px rgba(18, 87, 201, 0.22);
+  transform: translateY(-1px);
+}
+
+.searchBox button:active {
+  transform: translateY(0);
+}
+
+/* =========================
+   EXAMPLES
+========================= */
+
 .examples {
-  max-width: 640px;
-  margin: 22px auto 0;
+  max-width: 720px;
+  margin: 20px auto 0;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -121,155 +210,236 @@ a {
   border: 1px solid #dbe4ee;
   background: #ffffff;
   color: #5b7290;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
-  font-family: inherit;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .exChip:hover {
   border-color: #1257c9;
-  color: #1257c9;
+  background: #eaf1fd;
+  color: #0c3f96;
+  transform: translateY(-1px);
 }
 
+/* =========================
+   SECTIONS
+========================= */
+
 .section {
-  padding: 40px 0;
+  padding: 46px 0;
   border-top: 1px solid #dbe4ee;
 }
 
 .section h2 {
-  font-size: 1.3rem;
-  margin: 0 0 18px;
+  font-size: 1.4rem;
+  margin: 0 0 20px;
+  letter-spacing: -0.015em;
 }
 
 .howGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 16px;
 }
 
 .howCard {
+  position: relative;
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(15, 41, 66, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.howCard:hover {
+  transform: translateY(-3px);
+  border-color: #c4d5e8;
+  box-shadow: 0 10px 25px rgba(15, 41, 66, 0.08);
 }
 
 .howCard .n {
-  color: #1257c9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 10px;
+  border-radius: 9px;
+  background: #eaf1fd;
+  color: #0c3f96;
   font-weight: 800;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .howCard p {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 0.88rem;
   color: #5b7290;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .finePrint {
   color: #5b7290;
   font-size: 0.85rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
+/* =========================
+   NOTICE
+========================= */
+
 .notice {
-  background: #fdf1de;
-  border: 1px solid #dbe4ee;
+  background: #fff9ee;
+  border: 1px solid #f0dfbd;
+  border-left: 4px solid #b5750f;
   border-radius: 12px;
-  padding: 14px 16px;
-  color: #5b7290;
+  padding: 14px 17px;
+  color: #6f5a35;
   font-size: 0.88rem;
+  line-height: 1.55;
   margin-top: 18px;
 }
 
+/* =========================
+   BACK BUTTON
+========================= */
+
 .backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: none;
   border: none;
   color: #1257c9;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
   font-size: 0.9rem;
   padding: 20px 0 0;
-  font-family: inherit;
+  transition: color 0.2s ease;
 }
+
+.backBtn:hover {
+  color: #0c3f96;
+}
+
+/* =========================
+   QUESTION CARD
+========================= */
 
 .qCard {
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  border-radius: 16px;
-  padding: 22px;
-  margin-top: 16px;
+  border-radius: 18px;
+  padding: 26px;
+  margin-top: 18px;
+  box-shadow: 0 6px 22px rgba(15, 41, 66, 0.05);
 }
 
 .qCard h3 {
-  margin: 0 0 14px;
-  font-size: 1.05rem;
+  margin: 0 0 18px;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
 }
 
 .qRow {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .qRow label {
   display: block;
   font-size: 0.88rem;
   color: #5b7290;
-  margin-bottom: 8px;
+  margin-bottom: 9px;
+  font-weight: 600;
 }
 
 .qOpts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 9px;
 }
 
 .qOpt {
-  padding: 8px 14px;
+  padding: 9px 15px;
   border-radius: 10px;
   border: 1.5px solid #dbe4ee;
-  background: #f6f8fb;
+  background: #f8fafc;
+  color: #334e68;
   cursor: pointer;
   font-size: 0.85rem;
-  font-family: inherit;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.qOpt:hover {
+  border-color: #8daed8;
+  background: #f2f6fc;
+  transform: translateY(-1px);
 }
 
 .qOpt.active {
   border-color: #1257c9;
   background: #eaf1fd;
   color: #0c3f96;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .contBtn {
   margin-top: 6px;
-  padding: 11px 20px;
+  padding: 12px 21px;
   border-radius: 10px;
   border: none;
   background: #1257c9;
-  color: #fff;
+  color: #ffffff;
   font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
+
+.contBtn:hover {
+  background: #0c3f96;
+  box-shadow: 0 5px 14px rgba(18, 87, 201, 0.2);
+  transform: translateY(-1px);
+}
+
+/* =========================
+   SUMMARY
+========================= */
 
 .summary {
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  border-radius: 16px;
-  padding: 22px 24px;
-  margin-top: 18px;
+  border-radius: 18px;
+  padding: 24px 26px;
+  margin-top: 20px;
+  box-shadow: 0 6px 22px rgba(15, 41, 66, 0.04);
 }
 
 .summary h2 {
-  margin: 0 0 4px;
-  font-size: 1.3rem;
+  margin: 0 0 5px;
+  font-size: 1.35rem;
+  letter-spacing: -0.015em;
 }
 
 .summary .loc {
   color: #5b7290;
   font-size: 0.9rem;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .tags {
@@ -279,7 +449,7 @@ a {
 }
 
 .tag {
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: #eef1f5;
   color: #5b7290;
@@ -287,19 +457,24 @@ a {
   font-weight: 600;
 }
 
+/* =========================
+   PROGRESS
+========================= */
+
 .progWrap {
-  margin-top: 18px;
+  margin-top: 20px;
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  border-radius: 16px;
-  padding: 20px 24px;
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: 0 6px 22px rgba(15, 41, 66, 0.04);
 }
 
 .progTop {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 }
 
 .progTop strong {
@@ -316,7 +491,8 @@ a {
 .barFill {
   height: 100%;
   background: #1257c9;
-  transition: width 0.3s;
+  border-radius: inherit;
+  transition: width 0.3s ease;
 }
 
 .progStats {
@@ -328,13 +504,17 @@ a {
   flex-wrap: wrap;
 }
 
+/* =========================
+   GRAPH LEGEND
+========================= */
+
 .legend {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
   font-size: 0.8rem;
   color: #5b7290;
-  margin: 18px 0 10px;
+  margin: 20px 0 11px;
 }
 
 .legend span {
@@ -350,12 +530,17 @@ a {
   display: inline-block;
 }
 
+/* =========================
+   GRAPH
+========================= */
+
 .graphScroll {
   overflow-x: auto;
-  border-radius: 16px;
+  border-radius: 18px;
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  padding: 10px;
+  padding: 12px;
+  box-shadow: 0 6px 22px rgba(15, 41, 66, 0.04);
 }
 
 .graphInner {
@@ -365,24 +550,30 @@ a {
 .node {
   position: absolute;
   width: 196px;
-  border-radius: 12px;
-  padding: 12px 13px;
+  border-radius: 14px;
+  padding: 14px;
   border: 1.5px solid #dbe4ee;
   background: #ffffff;
   cursor: pointer;
-  transition: transform 0.12s;
+  box-shadow: 0 3px 10px rgba(15, 41, 66, 0.04);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .node:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 41, 66, 0.09);
 }
 
 .node.locked {
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
 .node.ready {
   border-color: #1257c9;
+  box-shadow: 0 4px 14px rgba(18, 87, 201, 0.08);
 }
 
 .node.completed {
@@ -391,14 +582,14 @@ a {
 }
 
 .node.selected {
-  box-shadow: 0 0 0 3px rgba(18, 87, 201, 0.25);
+  box-shadow: 0 0 0 3px rgba(18, 87, 201, 0.18);
 }
 
 .badgeRow {
   display: flex;
   gap: 5px;
   flex-wrap: wrap;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 
 .badge {
@@ -406,7 +597,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 3px 7px;
   border-radius: 999px;
 }
 
@@ -443,8 +634,8 @@ a {
 .node .title {
   font-size: 0.86rem;
   font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 4px;
+  line-height: 1.35;
+  margin-bottom: 5px;
 }
 
 .node .auth {
@@ -452,44 +643,50 @@ a {
   color: #5b7290;
 }
 
+/* =========================
+   DETAIL PANEL
+========================= */
+
 .detail {
-  margin-top: 20px;
+  margin-top: 22px;
   background: #ffffff;
   border: 1px solid #dbe4ee;
-  border-radius: 16px;
-  padding: 22px 24px;
+  border-radius: 18px;
+  padding: 24px 26px;
+  box-shadow: 0 6px 22px rgba(15, 41, 66, 0.05);
 }
 
 .detail h3 {
-  margin: 0 0 8px;
+  margin: 0 0 9px;
   font-size: 1.2rem;
+  letter-spacing: -0.01em;
 }
 
 .detail .badgeRow {
-  margin-bottom: 14px;
+  margin-bottom: 15px;
 }
 
 .detail p {
   color: #5b7290;
-  line-height: 1.55;
-  margin: 0 0 12px;
+  line-height: 1.6;
+  margin: 0 0 13px;
   font-size: 0.92rem;
 }
 
 .detail ul {
-  margin: 0 0 14px;
-  padding-left: 18px;
+  margin: 0 0 15px;
+  padding-left: 19px;
   color: #5b7290;
   font-size: 0.88rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .kv {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 14px;
+  grid-template-columns: minmax(100px, auto) 1fr;
+  gap: 7px 16px;
   font-size: 0.88rem;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .kv dt {
@@ -498,7 +695,7 @@ a {
 
 .kv dd {
   margin: 0;
-  font-weight: 500;
+  font-weight: 550;
 }
 
 .actions {
@@ -508,13 +705,25 @@ a {
 }
 
 .link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 10px 16px;
   border-radius: 10px;
   background: #1257c9;
-  color: #fff;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 700;
   font-size: 0.85rem;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.link-btn:hover {
+  background: #0c3f96;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .link-btn.secondary {
@@ -522,16 +731,28 @@ a {
   color: #5b7290;
 }
 
+.link-btn.secondary:hover {
+  background: #e2e7ed;
+  color: #334e68;
+}
+
 .doneBtn {
   padding: 10px 16px;
   border-radius: 10px;
   background: #1c8a52;
-  color: #fff;
+  color: #ffffff;
   font-weight: 700;
   font-size: 0.85rem;
   border: none;
   cursor: pointer;
-  font-family: inherit;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.doneBtn:hover:not(:disabled) {
+  background: #146a3e;
+  transform: translateY(-1px);
 }
 
 .doneBtn:disabled {
@@ -545,27 +766,144 @@ a {
   font-size: 0.8rem !important;
 }
 
+/* =========================
+   EMPTY STATE
+========================= */
+
 .empty {
   color: #5b7290;
   font-size: 0.9rem;
-  padding: 8px 2px;
+  padding: 12px 2px;
 }
 
+/* =========================
+   FOOTER
+========================= */
+
 footer {
-  margin-top: 34px;
-  color: #5b7290;
+  margin-top: 42px;
+  color: #71839a;
   font-size: 0.78rem;
   line-height: 1.6;
-  padding: 24px 0;
+  padding: 28px 0;
+  border-top: 1px solid #dbe4ee;
+}
+
+/* =========================
+   FOCUS ACCESSIBILITY
+========================= */
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(18, 87, 201, 0.25);
+  outline-offset: 2px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 760px) {
+  .nav {
+    padding: 13px 18px;
+  }
+
+  .nav .links {
+    gap: 14px;
+  }
+
+  .hero {
+    padding: 58px 12px 40px;
+  }
+
+  .wrap {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
 }
 
 @media (max-width: 640px) {
+  .nav {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .nav .links {
+    gap: 11px;
+    font-size: 0.78rem;
+  }
+
   .hero h1 {
-    font-size: 1.7rem;
+    font-size: 1.85rem;
+  }
+
+  .hero p {
+    font-size: 0.95rem;
   }
 
   .searchBox {
     flex-direction: column;
+    padding: 8px;
+  }
+
+  .searchBox input {
+    padding: 14px;
+  }
+
+  .searchBox button {
+    width: 100%;
+  }
+
+  .howGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .qCard,
+  .summary,
+  .progWrap,
+  .detail {
+    padding: 20px;
+  }
+
+  .kv {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .kv dd {
+    margin-bottom: 8px;
+  }
+
+  footer {
+    margin-top: 30px;
   }
 }
 
+@media (max-width: 430px) {
+  .nav {
+    flex-direction: column;
+  }
+
+  .nav .links {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .hero {
+    padding-top: 45px;
+  }
+
+  .hero h1 {
+    font-size: 1.65rem;
+  }
+
+  .examples {
+    gap: 6px;
+  }
+
+  .exChip {
+    font-size: 0.78rem;
+    padding: 7px 11px;
+  }
+}
