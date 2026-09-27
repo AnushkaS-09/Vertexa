@@ -1,0 +1,13 @@
+{
+  "name": "vertex-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Municipal Bureaucracy Path Visualizer Monorepo",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start": "node server/src/index.js",
+    "build": "npm --prefix client run build"
+  }
+}

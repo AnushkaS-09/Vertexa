@@ -62,27 +62,26 @@
       {
         "id": "node_autodcr",
         "stage": "Stage 2: Architectural Scrutiny & PreDCR",
-        "title": "Architect CAD Plan Submission (AutoDCR Scrutiny)",
-        "department": "Town Planning Scrutiny Cell (MahaBPAMS)",
+        "title": "PreDCR CAD Validation & Building Proposal Submission",
+        "department": "Town Planning & Building Proposal Dept (BPAMS / MahaDCR)",
         "type": "submission",
         "estimatedDays": 10,
-        "cost": 15000,
-        "statutoryRule": "UDCPR 2020, Reg 2.2.1 & Reg 2.2.4",
+        "cost": 8500,
+        "statutoryRule": "UDCPR 2020, Reg 2.2.4 & Appendix A-1",
         "forms": [
-          "Appendix A-1 (Prescribed Application for Development)",
-          "Appendix B (Supervision Certificate by Council of Architecture registered Architect)",
-          "PreDCR CAD Sheet (.dwg) with layered setbacks and FSI tables",
-          "Structural Stability Certificate (Registered Structural Engineer)"
+          "Appendix A-1 (Form for Development Permission)",
+          "PreDCR Layer-Standardized DWG Architectural Drawings",
+          "Structural Engineer Certificate of Supervision"
         ],
         "officialUrl": "https://mahadma.maharashtra.gov.in",
-        "plainLanguageSummary": "Architect uploads floor plans into the state automated engine to test against setbacks, FSI, parking, and height limits.",
+        "plainLanguageSummary": "Automated CAD engine scans your blueprints against Floor Space Index (FSI), marginal open spaces, staircase width, and parking norms.",
         "isBottleneck": false
       },
       {
         "id": "node_site_inspection",
         "stage": "Stage 2: Architectural Scrutiny & PreDCR",
-        "title": "Site Inspection by Assistant Town Planner (ATP)",
-        "department": "Municipal Corporation / Council Town Planning Wing",
+        "title": "Site Inspection & Assistant Town Planner (ATP) Report",
+        "department": "Town Planning Department (Field Inspection Cell)",
         "type": "inspection",
         "estimatedDays": 7,
         "cost": 0,

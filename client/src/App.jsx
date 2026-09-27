@@ -7,8 +7,9 @@ import {
   Loader2,
   Sparkles,
   Building2,
-  Utensils,
-  Store,
+  Home,
+  Mountain,
+  FileCheck,
   Menu,
   X,
   FileText,
@@ -213,25 +214,32 @@ const FALLBACK_SEED_GRAPH = {
 
 const PRESETS = [
   {
-    id: 'res-house',
-    label: 'Residential House (UDCPR 2020)',
-    icon: Building2,
-    query: 'Residential building bungalow permit in Maharashtra UDCPR',
+    id: 'res-full-pipeline',
+    label: 'Standard Residential Bungalow (G+2)',
+    icon: Home,
+    query: 'Residential House building permission G+2 Bungalow UDCPR 2020',
     city: 'Maharashtra'
   },
   {
-    id: 'cloud-kitchen',
-    label: 'Commercial Cloud Kitchen (MCGM/FSSAI)',
-    icon: Utensils,
-    query: 'Commercial cloud kitchen FSSAI health license fire NOC trade permit',
-    city: 'Mumbai'
+    id: 'res-hill-station',
+    label: 'Hill Station House (Matheran / Eco-Zone)',
+    icon: Mountain,
+    query: 'Residential Bungalow construction in Matheran Eco-Sensitive Zone',
+    city: 'Matheran'
   },
   {
-    id: 'gumasta-shop',
-    label: 'Shop & Establishment (Gumasta)',
-    icon: Store,
-    query: 'Shop and Establishment Act registration Gumasta license labor clearance',
+    id: 'res-predcr-iod',
+    label: 'PreDCR CAD & Architectural Scrutiny',
+    icon: Building2,
+    query: 'PreDCR CAD scrutiny AutoDCR plan approval and IOD for residential building',
     city: 'Pune'
+  },
+  {
+    id: 'res-plinth-oc',
+    label: 'Plinth to Occupancy Certificate (OC)',
+    icon: FileCheck,
+    query: 'Plinth level inspection superstructure CC and final Occupancy Certificate OC',
+    city: 'Mumbai'
   }
 ];
 
@@ -322,7 +330,7 @@ export default function App() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search civic goal (e.g., Bungalow in Pune, Cloud Kitchen, Gumasta)..."
+              placeholder="Search residential project (e.g., G+2 Bungalow in Pune, Matheran Eco-House, Plinth to OC)..."
               className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -374,7 +382,7 @@ export default function App() {
       <div className="h-10 shrink-0 bg-slate-950/90 border-b border-slate-800 px-4 flex items-center justify-between gap-2 overflow-x-auto text-xs no-print">
         <div className="flex items-center gap-2">
           <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider shrink-0">
-            Quick Templates:
+            Residential Scenarios:
           </span>
           {PRESETS.map((preset) => {
             const Icon = preset.icon;
@@ -429,6 +437,7 @@ export default function App() {
       <JargonBusterModal
         isOpen={isJargonModalOpen}
         onClose={() => setIsJargonModalOpen(false)}
+        graphData={graphData}
       />
     </div>
   );
