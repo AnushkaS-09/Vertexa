@@ -33,10 +33,10 @@ function runScopeRoutingTests() {
   const res1 = simulateConstructWorkflow('I want to dance');
   assert.strictEqual(res1.status, 'OUT_OF_SCOPE', 'Must classify "I want to dance" as OUT_OF_SCOPE');
   assert.strictEqual(res1.isQuestionnaireOpen, false, 'Plot Questionnaire MUST NOT open for "I want to dance"');
-  assert.ok(res1.feedbackMessage.includes('residential building permission'), 'Must show clear scope boundary message');
+  assert.ok(res1.feedbackMessage.includes('building plan approval') || res1.feedbackMessage.includes('construction'), 'Must show clear scope boundary message');
   console.log('  ✓ "I want to dance" -> OUT_OF_SCOPE, Questionnaire NOT opened\n');
 
-  // TEST 2 — CLEARLY IN SCOPE
+  // TEST 2 — CLEARLY IN SCOPE (RESIDENTIAL)
   console.log('[Test 2] Clearly In Scope: "I want to build a house in Pune"...');
   const res2 = simulateConstructWorkflow('I want to build a house in Pune');
   assert.strictEqual(res2.status, 'IN_SCOPE', 'Must classify standard house request as IN_SCOPE');
@@ -57,14 +57,14 @@ function runScopeRoutingTests() {
   assert.strictEqual(res4.isQuestionnaireOpen, true);
   console.log('  ✓ "I want to construct a G+2 residential building on my plot" -> IN_SCOPE, Questionnaire opened\n');
 
-  // TEST 5 — UNRELATED COMMERCIAL REQUEST
-  console.log('[Test 5] Commercial Request: "I want to open a restaurant"...');
-  const res5 = simulateConstructWorkflow('I want to open a restaurant');
-  assert.strictEqual(res5.status, 'OUT_OF_SCOPE', 'Commercial restaurant must be OUT_OF_SCOPE');
-  assert.strictEqual(res5.isQuestionnaireOpen, false, 'Plot Questionnaire MUST NOT open for restaurant');
-  console.log('  ✓ "I want to open a restaurant" -> OUT_OF_SCOPE, Questionnaire NOT opened\n');
+  // TEST 5 — COMMERCIAL CONSTRUCTION (NOW SUPPORTED IN SCOPE)
+  console.log('[Test 5] Commercial Request: "I want to construct a commercial shopping complex in Mumbai"...');
+  const res5 = simulateConstructWorkflow('I want to construct a commercial shopping complex in Mumbai');
+  assert.strictEqual(res5.status, 'IN_SCOPE', 'Commercial building construction is IN_SCOPE');
+  assert.strictEqual(res5.isQuestionnaireOpen, true, 'Plot Questionnaire MUST open for commercial construction');
+  console.log('  ✓ "I want to construct a commercial shopping complex in Mumbai" -> IN_SCOPE, Questionnaire opened\n');
 
-  // TEST 6 — STANDALONE WATER CONNECTION
+  // TEST 6 — STANDALONE WATER CONNECTION (OUT OF SCOPE)
   console.log('[Test 6] Standalone Utility: "I need a standalone water connection"...');
   const res6 = simulateConstructWorkflow('I need a standalone water connection');
   assert.strictEqual(res6.status, 'OUT_OF_SCOPE', 'Standalone utility connection must be OUT_OF_SCOPE');

@@ -13,11 +13,26 @@ const VALID_NODE_TYPES = new Set([
   'final_approval'
 ]);
 
+const VALID_CONSTRUCTION_TYPES = new Set([
+  'RESIDENTIAL',
+  'COMMERCIAL',
+  'INSTITUTIONAL',
+  'HOSPITALITY',
+  'MIXED_USE',
+  'INDUSTRIAL',
+  'OTHER'
+]);
+
 function validateGraph(graph) {
   const errors = [];
 
   if (!graph || typeof graph !== 'object') {
     return { isValid: false, errors: ['Graph payload must be a non-null object.'] };
+  }
+
+  if (graph.constructionType && !VALID_CONSTRUCTION_TYPES.has(graph.constructionType)) {
+    // If not in canonical list, default to OTHER or warn
+    graph.constructionType = 'OTHER';
   }
 
   if (!graph.taskTitle || typeof graph.taskTitle !== 'string') {

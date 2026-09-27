@@ -58,6 +58,10 @@ export default function ApplicabilitySummary({ eligibility, onOpenQuestionnaire 
           {/* Quick Plot Metrics Banner */}
           <div className="flex flex-wrap items-center gap-3 p-2 mb-3 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300">
             <div>
+              <span className="text-slate-400">Type: </span>
+              <strong className="text-indigo-300 uppercase">{eligibility.constructionType || 'RESIDENTIAL'}</strong>
+            </div>
+            <div>
               <span className="text-slate-400">Authority: </span>
               <strong className="text-slate-100">{eligibility.jurisdiction || 'Maharashtra'}</strong>
             </div>

@@ -2,12 +2,18 @@
  * Vertexa Deterministic Rules & Eligibility Engine
  * Regulatory Framework: Maharashtra UDCPR 2020 & MRTP Act 1966
  * 
- * Determines applicable, exempt, and conditional NOC clearances
- * based on structured plot and building parameters.
+ * Supports Multi-Typology Municipal Permitting:
+ * - RESIDENTIAL
+ * - COMMERCIAL
+ * - INSTITUTIONAL
+ * - HOSPITALITY
+ * - MIXED_USE
+ * - INDUSTRIAL
+ * - OTHER
  */
 
 const CANONICAL_NODES = {
-  // 1. Universal Base Nodes (Always apply to any residential plot in Maharashtra)
+  // Baseline Process Nodes (Apply across building developments under UDCPR 2020 / MRTP Act 1966)
   title: {
     id: "node_title",
     stage: "Stage 1: Revenue & Land Title",
@@ -16,14 +22,14 @@ const CANONICAL_NODES = {
     type: "prerequisite",
     estimatedDays: 3,
     cost: 150,
-    statutoryRule: "UDCPR 2020, Reg 2.2.3(a)",
+    statutoryRule: "UDCPR 2020, Reg 2.2.3(a) & MLRC 1966 Sec 148",
     forms: [
       "V.F. 7/12 Extract (issued within 6 months)",
       "Property Register Card (मालमत्ता पत्रक)",
       "Search Index-II from Sub-Registrar"
     ],
     officialUrl: "https://bhulekh.mahabhumi.gov.in",
-    plainLanguageSummary: "Proof that you hold unencumbered legal title with no government reservations, litigation, or liens.",
+    plainLanguageSummary: "Proof of unencumbered legal title with clear ownership, no unauthorized reservations, litigation, or government liens.",
     isBottleneck: false
   },
   mojani: {
@@ -34,7 +40,7 @@ const CANONICAL_NODES = {
     type: "prerequisite",
     estimatedDays: 21,
     cost: 3000,
-    statutoryRule: "UDCPR 2020, Reg 2.2.3(b)",
+    statutoryRule: "UDCPR 2020, Reg 2.2.3(b) & MLRC 1966 Sec 135",
     forms: [
       "Form No. 1 (Demarcation Application)",
       "Certified Mojani Sheet (मोजणी नकाशा)"
@@ -51,13 +57,13 @@ const CANONICAL_NODES = {
     type: "prerequisite",
     estimatedDays: 2,
     cost: 0,
-    statutoryRule: "UDCPR 2020, Reg 2.2.3(f)",
+    statutoryRule: "UDCPR 2020, Reg 2.2.3(f) & MMC Act Sec 129",
     forms: [
       "Current Assessment Year Paid Tax Receipt",
       "No-Dues Certificate (NOC)"
     ],
     officialUrl: "https://portal.mcgm.gov.in",
-    plainLanguageSummary: "Validates that all open land tax dues up to the current fiscal quarter are fully cleared.",
+    plainLanguageSummary: "Validates that all open land tax dues up to the current fiscal quarter are fully cleared prior to plan scrutiny.",
     isBottleneck: false
   },
   autodcr: {
@@ -106,10 +112,10 @@ const CANONICAL_NODES = {
     cost: 0,
     statutoryRule: "MRTP Act 1966 Section 45 & UDCPR Reg 2.5",
     forms: [
-      "IOD Letter with 15–20 conditional compliance clauses"
+      "IOD / Sanction Letter with conditional compliance clauses"
     ],
     officialUrl: "https://mahadma.maharashtra.gov.in",
-    plainLanguageSummary: "Conditional green signal. Certifies plan compliance, but forbids construction until all parallel departmental NOCs are produced.",
+    plainLanguageSummary: "Conditional planning green signal. Certifies plan compliance, but forbids construction until all parallel departmental NOCs are produced.",
     isBottleneck: false
   },
   hydraulic_noc: {
@@ -179,11 +185,11 @@ const CANONICAL_NODES = {
       "Occupancy Certificate (Appendix I)"
     ],
     officialUrl: "https://mahadma.maharashtra.gov.in",
-    plainLanguageSummary: "Certifies the building matches the sanctioned blueprint, unlocking legal electricity meters, permanent drinking water, and property assessment.",
+    plainLanguageSummary: "Certifies the building matches the sanctioned blueprint, unlocking permanent utility connections and property tax assessment.",
     isBottleneck: false
   },
 
-  // 2. Conditional Clearances (Triggered by deterministic rules engine)
+  // Conditional Environmental & Special Clearances
   tree_noc: {
     id: "node_tree_noc",
     stage: "Stage 3: Parallel Departmental NOCs",
@@ -215,7 +221,7 @@ const CANONICAL_NODES = {
       "Fire Hydrant & 6m All-Round Driveway Access Plan"
     ],
     officialUrl: "https://mahafireservice.gov.in",
-    plainLanguageSummary: "Mandatory for buildings of 15m height or more (UDCPR Reg 1.3(93)) or special residential occupancy ensuring firefighter access, dedicated fire staircases, and wet riser hookups.",
+    plainLanguageSummary: "Mandatory CFO appraisal for high-rise buildings (>=15m) and specialized commercial, institutional, hospitality, or industrial occupancies ensuring life safety systems, fire staircases, and wet risers.",
     isBottleneck: true
   },
   eco_noc: {
@@ -226,19 +232,19 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 30,
     cost: 5000,
-    statutoryRule: "Environment (Protection) Act 1986 & UDCPR 2020 Reg 3.1.1 (Eco-Sensitive Zones)",
+    statutoryRule: "Environment (Protection) Act 1986 & UDCPR 2020 Reg 3.1.1",
     forms: [
       "Form-1 ESZ Environmental Impact Statement",
       "NOC from Local Eco-Sensitive Monitoring Committee"
     ],
     officialUrl: "https://ecoclearance.nic.in",
-    plainLanguageSummary: "Strict clearance for hill stations and eco-sensitive zones (e.g., Matheran, Mahabaleshwar) governing maximum permissible ground coverage, roof slopes, and tree preservation.",
+    plainLanguageSummary: "Strict clearance for hill stations and eco-sensitive zones (e.g., Matheran, Mahabaleshwar) governing permissible ground coverage, roof slopes, and tree preservation.",
     isBottleneck: true
   },
   heritage_noc: {
     id: "node_heritage_noc",
     stage: "Stage 3: Parallel Departmental NOCs",
-    title: "Mumbai / Pune Heritage Conservation Committee (MHCC) NOC",
+    title: "Heritage Conservation Committee (MHCC / Local Heritage Committee) NOC",
     department: "Heritage Conservation Cell & Urban Development Dept",
     type: "clearance",
     estimatedDays: 25,
@@ -249,7 +255,7 @@ const CANONICAL_NODES = {
       "Proximity Certificate to Grade I/II/III Listed Structures"
     ],
     officialUrl: "https://portal.mcgm.gov.in",
-    plainLanguageSummary: "Mandatory when developing a plot within designated heritage precincts or within 100m of protected archaeological/state monuments.",
+    plainLanguageSummary: "Mandatory when developing a plot within designated heritage precincts or within buffer zones of protected monuments.",
     isBottleneck: true
   },
   airport_noc: {
@@ -260,7 +266,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 20,
     cost: 2000,
-    statutoryRule: "Ministry of Civil Aviation (GSR 751(E)) & UDCPR 2020 Reg 2.2.5(a)",
+    statutoryRule: "Ministry of Civil Aviation (GSR 751(E)) & UDCPR 2020 Reg 2.2.5(c)",
     forms: [
       "NOCAS Online Application (WGS-84 Coordinates & Top-of-Structure AMSL Elevation)",
       "Site Elevation Certificate by Registered Surveyor"
@@ -268,14 +274,105 @@ const CANONICAL_NODES = {
     officialUrl: "https://nocas2.aai.aero",
     plainLanguageSummary: "Clearance verifying that proposed building height, water tanks, and lift machine rooms do not infringe into airport radar or obstacle limitation surfaces (OLS).",
     isBottleneck: false
+  },
+
+  // Non-Residential Specialized Statutory Nodes
+  comm_traffic_parking: {
+    id: "node_comm_traffic_parking",
+    stage: "Stage 3: Parallel Departmental NOCs",
+    title: "Commercial Traffic Scrutiny & Off-Street Parking Verification [Requires Site Verification]",
+    department: "Traffic Police / Municipal Traffic Planning Branch",
+    type: "clearance",
+    estimatedDays: 15,
+    cost: 5000,
+    statutoryRule: "UDCPR 2020, Reg 4.2 & Table 6.1",
+    forms: [
+      "Traffic Ingress/Egress Circulation Plan",
+      "Off-Street Commercial Parking & Loading/Unloading Bay Layout"
+    ],
+    officialUrl: "https://mahadma.maharashtra.gov.in",
+    plainLanguageSummary: "Verification of dedicated customer parking, visitor bays, and delivery loading berths to prevent arterial road congestion. Subject to site scale verification.",
+    isBottleneck: false
+  },
+  inst_accessibility: {
+    id: "node_inst_accessibility",
+    stage: "Stage 3: Parallel Departmental NOCs",
+    title: "Barrier-Free Accessibility & Institutional Standards Scrutiny [Requires Verification]",
+    department: "Municipal Town Planning Wing / Health Department",
+    type: "clearance",
+    estimatedDays: 12,
+    cost: 2500,
+    statutoryRule: "UDCPR 2020 Chapter 4 (Institutional Norms)",
+    forms: [
+      "Barrier-Free Ramp & Toilet Compliance Details",
+      "Institutional Use Undertaking"
+    ],
+    officialUrl: "https://mahadma.maharashtra.gov.in",
+    plainLanguageSummary: "Verification of ramps, accessible sanitation, and specialized institutional layout parameters.",
+    isBottleneck: false
+  },
+  hosp_env_tourism: {
+    id: "node_hosp_env_tourism",
+    stage: "Stage 3: Parallel Departmental NOCs",
+    title: "Tourism & Environmental Scrutiny [Requires Verification]",
+    department: "Tourism Dept / Municipal Health / Environment Cell",
+    type: "clearance",
+    estimatedDays: 15,
+    cost: 5000,
+    statutoryRule: "Maharashtra Tourism Policy & Municipal Health / UDCPR 2020 Reg 4.10",
+    forms: [
+      "Tourism Registration / Health Trade Intent Application",
+      "Solid Waste Management Scheme"
+    ],
+    officialUrl: "https://mahadma.maharashtra.gov.in",
+    plainLanguageSummary: "Statutory verification for hotels/resorts regarding kitchen waste management and tourism category compliance.",
+    isBottleneck: false
+  },
+  mixed_segregation: {
+    id: "node_mixed_segregation",
+    stage: "Stage 3: Parallel Departmental NOCs",
+    title: "Mixed-Use Segregation & Dual Entry/Exit Verification [Requires Verification]",
+    department: "Town Planning & Traffic Scrutiny Wing",
+    type: "clearance",
+    estimatedDays: 12,
+    cost: 3500,
+    statutoryRule: "UDCPR 2020 Reg 4.2 (Segregation of Commercial & Residential Uses)",
+    forms: [
+      "Dual Egress & Lift Lobby Separation Plan",
+      "Parking Allocation Schedule"
+    ],
+    officialUrl: "https://mahadma.maharashtra.gov.in",
+    plainLanguageSummary: "Verifies physical separation between residential lobby entries and commercial shop fronts.",
+    isBottleneck: false
+  },
+  ind_mpcb_dish: {
+    id: "node_ind_mpcb_dish",
+    stage: "Stage 3: Parallel Departmental NOCs",
+    title: "MPCB Consent to Establish (CTE) & DISH Factory Plan Scrutiny [Requires Verification]",
+    department: "Maharashtra Pollution Control Board (MPCB) & Directorate of Industrial Safety & Health (DISH)",
+    type: "clearance",
+    estimatedDays: 25,
+    cost: 15000,
+    statutoryRule: "Water/Air Pollution Control Acts & Maharashtra Factories Rules 1963",
+    forms: [
+      "Consent to Establish (CTE) Application via MPCB Portal",
+      "Factory Plan Submission Form (DISH)"
+    ],
+    officialUrl: "https://mpcb.gov.in",
+    plainLanguageSummary: "Statutory pollution control consent (Red/Orange/Green/White categorization) and factory inspectorate approval. Specific category and fee depend on industry classification and capital investment.",
+    isBottleneck: true
   }
 };
 
 /**
  * Deterministic Rules Evaluator
- * Evaluates user plot questionnaire against statutory UDCPR 2020 criteria
+ * Evaluates user project parameters against statutory UDCPR 2020 criteria
  */
 function evaluateEligibility(questionnaire = {}) {
+  const constructionType = (questionnaire.constructionType || 'RESIDENTIAL').toUpperCase();
+  const customConstructionType = questionnaire.customConstructionType || '';
+  const mixedUseComponents = questionnaire.mixedUseComponents || [];
+
   const {
     jurisdiction = 'Maharashtra',
     plotArea = 150, // in sq.m
@@ -292,12 +389,16 @@ function evaluateEligibility(questionnaire = {}) {
   const exempt = [];
   const uncertain = [];
 
-  // Rule 1: Baseline Clearances (Universal)
+  const typologyLabel = constructionType === 'OTHER' && customConstructionType
+    ? customConstructionType
+    : constructionType.charAt(0) + constructionType.slice(1).toLowerCase();
+
+  // Rule 1: Baseline Clearances (Universal under MRTP Act 1966 & UDCPR 2020)
   applicable.push({
     id: 'base_title_record',
     name: 'Land Title & 7/12 / CTS Property Card',
     status: 'APPLIES',
-    reason: 'Mandatory under UDCPR 2020 Reg 2.2.3(a) for all residential construction to prove unencumbered ownership.',
+    reason: `Mandatory under UDCPR 2020 Reg 2.2.3(a) & MLRC 1966 Sec 148 for ${typologyLabel} development to prove unencumbered ownership.`,
     statutoryRef: 'UDCPR 2020 Reg 2.2.3(a)',
     nodeKey: 'title'
   });
@@ -306,7 +407,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_cadastral_demarcation',
     name: 'Cadastral Demarcation (Kayam Mojani)',
     status: 'APPLIES',
-    reason: 'Mandatory under UDCPR 2020 Reg 2.2.3(b) to verify physical plot boundaries, road widening line, and setbacks.',
+    reason: `Mandatory under UDCPR 2020 Reg 2.2.3(b) & MLRC 1966 Sec 135 to verify physical plot boundaries, road widening line, and statutory setbacks for ${typologyLabel} construction.`,
     statutoryRef: 'UDCPR 2020 Reg 2.2.3(b)',
     nodeKey: 'mojani'
   });
@@ -315,7 +416,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_property_tax',
     name: 'Municipal Property Tax No-Dues NOC',
     status: 'APPLIES',
-    reason: 'Mandatory proof that all open land municipal taxes are paid up to date prior to plan scrutiny.',
+    reason: `Mandatory proof under MMCA Sec 129 / UDCPR Reg 2.2.3(f) that all municipal open land taxes are cleared prior to ${typologyLabel} architectural scrutiny.`,
     statutoryRef: 'UDCPR 2020 Reg 2.2.3(f)',
     nodeKey: 'tax_noc'
   });
@@ -324,7 +425,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_autodcr_scrutiny',
     name: 'Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)',
     status: 'APPLIES',
-    reason: 'Statutory automated verification of FSI, ground coverage, light/ventilation, and setbacks.',
+    reason: `Statutory automated verification of FSI, ground coverage, ventilation, parking norms, and open spaces under UDCPR 2020 for ${typologyLabel} development.`,
     statutoryRef: 'UDCPR 2020 Reg 2.2.1 & 2.2.4',
     nodeKey: 'autodcr'
   });
@@ -333,7 +434,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_site_inspection',
     name: 'Assistant Town Planner (ATP) Site Inspection',
     status: 'APPLIES',
-    reason: 'Mandatory ground verification by planning authority before granting IOD/sanction.',
+    reason: 'Mandatory ground verification by planning authority before granting IOD / Development Sanction.',
     statutoryRef: 'UDCPR 2020 Reg 2.4 & RTS Act',
     nodeKey: 'site_inspection'
   });
@@ -342,7 +443,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_iod_sanction',
     name: 'Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)',
     status: 'APPLIES',
-    reason: 'Statutory conditional sanction under Section 45 of MRTP Act 1966.',
+    reason: `Statutory conditional planning sanction under Section 45 of MRTP Act 1966 for ${typologyLabel} project.`,
     statutoryRef: 'MRTP Act 1966 Sec 45',
     nodeKey: 'iod'
   });
@@ -351,7 +452,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_hydraulic_sanction',
     name: 'Hydraulic & Stormwater Drainage Sanction',
     status: 'APPLIES',
-    reason: 'Required for all plots to connect internal sewage & stormwater to municipal mains.',
+    reason: `Required under UDCPR 2020 Reg 2.2.5(d) for ${typologyLabel} development to connect internal sewage & stormwater to municipal mains.`,
     statutoryRef: 'UDCPR 2020 Reg 2.2.5(d)',
     nodeKey: 'hydraulic_noc'
   });
@@ -360,7 +461,7 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_commencement_cert',
     name: 'Commencement Certificate (CC)',
     status: 'APPLIES',
-    reason: 'Statutory permission to commence physical excavation and construction up to plinth.',
+    reason: 'Statutory permission under UDCPR 2020 Reg 2.6 to commence physical excavation and construction up to plinth.',
     statutoryRef: 'UDCPR 2020 Reg 2.6',
     nodeKey: 'cc'
   });
@@ -369,149 +470,220 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_plinth_check',
     name: 'Plinth Level Inspection & Superstructure CC',
     status: 'APPLIES',
-    reason: 'Mandatory stage check ensuring foundation setbacks match sanctioned plan before upper floor casting.',
+    reason: 'Mandatory on-site setback verification by municipal engineer before casting upper superstructure slabs.',
     statutoryRef: 'UDCPR 2020 Reg 2.8.4',
     nodeKey: 'plinth_check'
   });
 
   applicable.push({
     id: 'base_occupancy_cert',
-    name: 'Final Occupancy Certificate (OC)',
+    name: 'Building Completion & Final Occupancy Certificate (OC)',
     status: 'APPLIES',
-    reason: 'Final legal clearance certifying building is habitable and compliant with sanctioned blueprint.',
+    reason: `Final statutory certification under UDCPR 2020 Reg 2.10 confirming ${typologyLabel} building matches sanctioned blueprint.`,
     statutoryRef: 'UDCPR 2020 Reg 2.10',
     nodeKey: 'oc'
   });
 
-  // Rule 2: Tree Authority Clearance (Trees affected > 0 or user checked yes)
-  if (Number(treesAffected) > 0) {
+  // Rule 2: Tree Authority Clearance
+  const treeCount = parseInt(treesAffected, 10) || 0;
+  if (treeCount > 0) {
     applicable.push({
       id: 'rule_tree_noc',
-      name: 'Tree Authority Clearance & Re-plantation NOC',
+      name: 'Tree Authority Felling / Transplantation Clearance',
       status: 'APPLIES',
-      reason: `${treesAffected} tree(s) reported on or adjacent to proposed construction footprint requiring Tree Authority permission and compensatory plantation under Section 8 of the Maharashtra (Urban Areas) Protection and Preservation of Trees Act 1975.`,
-      statutoryRef: 'Maharashtra Tree Act 1975, Sec 8',
+      reason: `Plot footprint has ${treeCount} tree(s) requiring felling/transplantation under Maharashtra (Urban Areas) Protection & Preservation of Trees Act 1975, Sec 8.`,
+      statutoryRef: 'Maharashtra Trees Act 1975, Sec 8',
       nodeKey: 'tree_noc'
     });
   } else {
     exempt.push({
       id: 'rule_tree_noc',
-      name: 'Tree Authority Tree Felling Permission',
+      name: 'Tree Authority Felling Clearance',
       status: 'EXEMPT',
-      reason: 'No Tree Authority clearance triggered by the reported questionnaire facts (zero trees marked for felling/transplantation on the proposed footprint). An architect self-declaration is submitted with the application.',
-      statutoryRef: 'Maharashtra Tree Act 1975',
-      nodeKey: 'tree_noc'
+      reason: 'No Tree Authority clearance is triggered by reported questionnaire facts. Note: If site conditions differ or tree felling is required, prior permit under Maharashtra Trees Act 1975 remains mandatory.',
+      statutoryRef: 'Maharashtra Trees Act 1975'
     });
   }
 
-  // Rule 3: Fire Safety NOC (Height >= 15.0m or special residential building under UDCPR Chapter 6 & Reg 1.3(93))
-  const parsedHeight = parseFloat(buildingHeight) || 0;
-  if (parsedHeight >= 15.0) {
-    applicable.push({
-      id: 'rule_fire_noc',
-      name: 'Chief Fire Officer (CFO) Provisional Fire NOC',
-      status: 'APPLIES',
-      reason: `Proposed building height (${parsedHeight}m) meets or exceeds the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(93) & Chapter 6. Chief Fire Officer (CFO) Provisional Fire Safety NOC and dedicated fire driveways are mandatory.`,
-      statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006',
-      nodeKey: 'fire_noc'
-    });
+  // Rule 3: Fire Safety NOC (Height threshold & Typology classification)
+  const parsedHeight = parseFloat(buildingHeight) || 8.5;
+  const isHighRise = parsedHeight >= 15.0;
+
+  if (constructionType === 'RESIDENTIAL') {
+    if (isHighRise) {
+      applicable.push({
+        id: 'rule_fire_noc',
+        name: 'Chief Fire Officer (CFO) High-Rise Fire Safety Clearance (NOC)',
+        status: 'APPLIES',
+        reason: `Proposed residential building height (${parsedHeight}m) meets or exceeds the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a). Chief Fire Officer appraisal is mandatory.`,
+        statutoryRef: 'UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a)',
+        nodeKey: 'fire_noc'
+      });
+    } else {
+      exempt.push({
+        id: 'rule_fire_noc',
+        name: 'Chief Fire Officer (CFO) High-Rise Fire Safety Clearance',
+        status: 'EXEMPT',
+        reason: `Proposed building height (${parsedHeight}m) is below the 15.0m high-rise threshold for residential houses under UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a). Standard fire setbacks are self-certified by architect on submission drawings.`,
+        statutoryRef: 'UDCPR 2020 Reg 1.3(60)'
+      });
+    }
   } else {
-    exempt.push({
-      id: 'rule_fire_noc',
-      name: 'Chief Fire Officer (CFO) Special High-Rise Fire NOC',
-      status: 'EXEMPT',
-      reason: `Proposed building height (${parsedHeight}m) is below the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(93). No separate High-Rise CFO NOC is triggered, while general fire safety setbacks remain self-certified by the registered architect on the building blueprint.`,
-      statutoryRef: 'UDCPR 2020 Chapter 6',
-      nodeKey: 'fire_noc'
-    });
+    // Non-Residential (Commercial, Institutional, Hospitality, Industrial, Mixed-Use, Other)
+    if (isHighRise) {
+      applicable.push({
+        id: 'rule_fire_noc',
+        name: 'Chief Fire Officer (CFO) Fire Safety Clearance (NOC)',
+        status: 'APPLIES',
+        reason: `Proposed ${typologyLabel} building height (${parsedHeight}m) meets or exceeds 15.0m. Full Chief Fire Officer appraisal and life safety review is mandatory under UDCPR Chapter 6 & Maharashtra Fire Prevention Act 2006.`,
+        statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006',
+        nodeKey: 'fire_noc'
+      });
+    } else {
+      uncertain.push({
+        id: 'rule_fire_noc',
+        name: 'Chief Fire Officer (CFO) Fire Safety Clearance',
+        status: 'VERIFICATION_REQUIRED',
+        reason: `Low-rise ${typologyLabel} building (<15m): CFO fire clearance depends on occupant load, built-up area, and hazardous/mercantile classification under UDCPR 2020 Chapter 6. Subject to municipal fire department appraisal.`,
+        statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006'
+      });
+    }
   }
 
-  // Rule 4: Eco-Sensitive Zone / Hill Station Clearance
-  const isEcoJurisdiction = /matheran|mahabaleshwar|panchgani|lonavala|khandala|eco|hill/i.test(jurisdiction);
-  if (ecoSensitiveZone || isEcoJurisdiction) {
+  // Rule 4: Eco-Sensitive Zone (ESZ)
+  const isMatheran = /matheran/i.test(jurisdiction);
+  const isESZJurisdiction = isMatheran || /mahabaleshwar|panchgani/i.test(jurisdiction);
+  const isESZReported = Boolean(ecoSensitiveZone);
+
+  if (isESZJurisdiction || isESZReported) {
     applicable.push({
       id: 'rule_eco_noc',
-      name: 'Eco-Sensitive Zone (ESZ) / High Level Monitoring Committee NOC',
+      name: 'Eco-Sensitive Zone (ESZ) / Hill Station Authority Clearance',
       status: 'APPLIES',
-      reason: `Plot is located in a notified Eco-Sensitive Zone (${jurisdiction}) under the Environment (Protection) Act 1986 & UDCPR 2020 Reg 3.1.1. High-Level Monitoring Committee approval is applicable. Note: Specific zonal schedules (e.g. permissible ground coverage and non-reflective sloping roof angles) must be verified against local notification norms.`,
-      statutoryRef: 'Environment (Protection) Act 1986 & UDCPR 2020 Reg 3.1.1',
+      reason: `Plot falls within Eco-Sensitive Zone (${jurisdiction}) under Environment (Protection) Act 1986 & UDCPR Reg 14.11.1. High-Level Monitoring Committee approval required.`,
+      statutoryRef: 'Environment (Protection) Act 1986 & UDCPR Reg 14.11.1',
       nodeKey: 'eco_noc'
     });
   } else {
-    exempt.push({
+    uncertain.push({
       id: 'rule_eco_noc',
-      name: 'Eco-Sensitive Zone (ESZ) Special Clearance',
-      status: 'EXEMPT',
-      reason: `Plot falls within standard municipal urban/residential zone outside declared National Park / Wildlife / Hill Station Eco-Sensitive buffer zones.`,
-      statutoryRef: 'UDCPR 2020 Reg 3.1',
-      nodeKey: 'eco_noc'
+      name: 'Eco-Sensitive Zone (ESZ) / Wildlife Buffer Status',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'No Eco-Sensitive Zone proximity was reported, but site-level verification is required to confirm plot does not fall within MoEFCC eco-sensitive buffer zones or forest boundaries.',
+      statutoryRef: 'Environment (Protection) Act 1986'
     });
   }
 
-  // Rule 5: Heritage Conservation Review
-  if (heritageZone) {
+  // Rule 5: Heritage Conservation
+  if (heritageZone === true || heritageZone === 'true') {
     applicable.push({
       id: 'rule_heritage_noc',
-      name: 'Heritage Conservation Committee (MHCC) Review',
+      name: 'Heritage Conservation Committee Clearance (MHCC / Local Heritage Committee)',
       status: 'APPLIES',
-      reason: 'Heritage pathway triggered: Plot reported within a declared heritage precinct or within the regulatory buffer of a protected heritage structure under UDCPR 2020 Chapter 11. Review by Heritage Conservation Committee (MHCC / State Heritage Cell) is applicable.',
-      statutoryRef: 'UDCPR 2020 Chapter 11',
+      reason: 'Plot is in a designated Heritage Precinct or near protected archaeological monuments under UDCPR 2020 Reg 11.2.',
+      statutoryRef: 'UDCPR 2020 Reg 11.2',
       nodeKey: 'heritage_noc'
     });
   } else {
     uncertain.push({
       id: 'rule_heritage_noc',
-      name: 'Heritage Precinct & Monument Proximity Review',
+      name: 'Heritage Conservation / Monument Buffer Status',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'Heritage status requires site-level verification: While no heritage proximity was reported, conclusive statutory exemption requires verifying that the plot does not fall within the 100m/200m buffer of an ASI central monument (AMASR Act 2010) or local municipal Grade I/II/III heritage lists.',
-      statutoryRef: 'UDCPR 2020 Chapter 11 & AMASR Act 2010'
+      reason: 'Heritage status requires site-level verification: verify that plot does not fall within 100m/200m buffer of ASI/State monuments (AMASR Act 1958) or local municipal Grade I/II/III lists.',
+      statutoryRef: 'AMASR Act 1958 & UDCPR Reg 11.2'
     });
   }
 
-  // Rule 6: Airport Authority of India (AAI NOCAS) Clearance
-  if (airportZone) {
+  // Rule 6: Airport Authority (AAI NOCAS)
+  if (airportZone === true || airportZone === 'true') {
     applicable.push({
       id: 'rule_airport_noc',
-      name: 'Airports Authority of India (AAI NOCAS) Height Clearance',
+      name: 'Airport Authority of India (AAI NOCAS) Height Clearance',
       status: 'APPLIES',
-      reason: 'Aviation clearance triggered: Plot reported within an aerodrome flight funnel or Colour Coded Zoning Map (CCZM) restricted boundary under Ministry of Civil Aviation GSR 751(E) & UDCPR 2020 Reg 2.2.5(a). Online AAI NOCAS scrutiny is applicable.',
-      statutoryRef: 'Ministry of Civil Aviation GSR 751(E) & UDCPR 2020 Reg 2.2.5(a)',
+      reason: 'Plot is reported within civil aviation funnel or radar obstacle limitation surface (OLS) under GSR 751(E) & UDCPR Reg 2.2.5(c).',
+      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.5(c)',
       nodeKey: 'airport_noc'
     });
   } else {
     uncertain.push({
       id: 'rule_airport_noc',
-      name: 'Airports Authority of India (AAI NOCAS) Height Clearance',
+      name: 'Airport Funnel & Radar Height Clearance (AAI NOCAS)',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'Aviation clearance requires site-specific verification: While no airport funnel was reported, conclusive AAI NOCAS exemption requires plotting exact WGS-84 geographic coordinates and structure elevation AMSL against the published AAI Colour Coded Zoning Map (CCZM).',
-      statutoryRef: 'Ministry of Civil Aviation GSR 751(E) & AAI CCZM Maps'
+      reason: 'Airport clearance requires site-level elevation verification against Colour Coded Zoning Map (CCZM) using exact WGS-84 coordinates and AMSL structure elevation.',
+      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.5(c)'
     });
   }
 
-  // Rule 7: High Tension Line Setback (Conditional / Verification Required)
-  if (hasHighTensionLine) {
+  // Rule 7: High-Tension Line Setback
+  if (hasHighTensionLine === true || hasHighTensionLine === 'true') {
     uncertain.push({
       id: 'rule_ht_setback',
-      name: 'High Tension (HT) Electricity Line Horizontal Clearance',
+      name: 'High-Tension (HT) Power Line Clearance & MSEDCL/MSETCL NOC',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'Overhead power line reported near plot. UDCPR 2020 Reg 3.4 mandates statutory horizontal & vertical safety clearances (1.2m to 3.7m+ depending on line voltage). Physical verification with MSEDCL / power utility required during site inspection.',
-      statutoryRef: 'UDCPR 2020 Reg 3.4'
+      reason: 'High-Tension electrical line traverses or abuts plot. Statutory horizontal and vertical safety clearances must be certified on-site under UDCPR 2020 Reg 3.4 & Indian Electricity Rules 1956.',
+      statutoryRef: 'UDCPR 2020 Reg 3.4 & Indian Electricity Rules 1956'
     });
   }
 
-  // Rule 8: Road width adequacy check
+  // Rule 8: Road Width Adequacy Check
   const parsedRoad = parseFloat(roadWidth) || 9.0;
   if (parsedRoad < 6.0) {
     uncertain.push({
       id: 'rule_road_width_access',
       name: 'Sub-6 Meter Access Road Setback Surrender',
       status: 'VERIFICATION_REQUIRED',
-      reason: `Existing road width (${parsedRoad}m) is narrower than standard 6.0m/9.0m UDCPR residential access. Road widening setback surrender may be demanded by Planning Authority before IOD grant under UDCPR 2020 Reg 3.3.1.`,
+      reason: `Existing road width (${parsedRoad}m) is narrower than standard UDCPR access. Road widening setback surrender may be demanded by Planning Authority before development sanction under UDCPR 2020 Reg 3.3.1.`,
       statutoryRef: 'UDCPR 2020 Reg 3.3.1'
     });
   }
 
+  // Typology-Specific Clearances (Added to uncertain for site-scale verification)
+  if (constructionType === 'COMMERCIAL') {
+    uncertain.push({
+      id: 'rule_comm_traffic_parking',
+      name: 'Commercial Traffic Impact & Off-Street Parking Scrutiny',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'Commercial mercantile projects require dedicated customer parking bays and loading/unloading berths under UDCPR Table 6.1.',
+      statutoryRef: 'UDCPR 2020 Table 6.1'
+    });
+  } else if (constructionType === 'INSTITUTIONAL') {
+    uncertain.push({
+      id: 'rule_inst_accessibility',
+      name: 'Barrier-Free Accessibility & Institutional Open Space Verification',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'Schools, colleges, and healthcare facilities require barrier-free ramps, emergency fire access driveways, and institutional open space reservations under UDCPR Chapter 4.',
+      statutoryRef: 'UDCPR 2020 Chapter 4'
+    });
+  } else if (constructionType === 'HOSPITALITY') {
+    uncertain.push({
+      id: 'rule_hosp_env_tourism',
+      name: 'Tourism Dept Registration & MPCB Environmental Consent',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'Hotels, resorts, and commercial kitchens require wastewater STP treatment and local health department trade clearances.',
+      statutoryRef: 'Water Act 1974 & UDCPR Chapter 4'
+    });
+  } else if (constructionType === 'INDUSTRIAL') {
+    uncertain.push({
+      id: 'rule_ind_mpcb_dish',
+      name: 'MPCB Consent to Establish & Factory Inspectorate (DISH) Approval',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'Manufacturing units and industrial sheds require pollution categorization (Red/Orange/Green) from MPCB and worker safety clearance under Factories Act 1948.',
+      statutoryRef: 'Factories Act 1948 & Air/Water Acts'
+    });
+  } else if (constructionType === 'MIXED_USE') {
+    uncertain.push({
+      id: 'rule_mixed_segregation',
+      name: 'Mixed-Use Dual Zoning & Segregated Circulation Scrutiny',
+      status: 'VERIFICATION_REQUIRED',
+      reason: 'Mixed-use developments require segregated residential and commercial parking, independent lobby entrances, and combined FSI verification under UDCPR Reg 4.2.',
+      statutoryRef: 'UDCPR 2020 Reg 4.2'
+    });
+  }
+
   return {
+    constructionType,
+    customConstructionType,
+    mixedUseComponents,
     jurisdiction,
     plotArea,
     buildingHeight: parsedHeight,
@@ -523,10 +695,11 @@ function evaluateEligibility(questionnaire = {}) {
 }
 
 /**
- * Builds a deterministic Directed Acyclic Graph (DAG) using canonical nodes and rules engine
+ * Builds a deterministic Directed Acyclic Graph (DAG) for any supported construction typology
  */
 function assembleDeterministicGraph(questionnaire = {}) {
   const eligibility = evaluateEligibility(questionnaire);
+  const constructionType = eligibility.constructionType || 'RESIDENTIAL';
   const applicableNodeKeys = new Set(
     eligibility.applicable.map((a) => a.nodeKey).filter(Boolean)
   );
@@ -534,8 +707,12 @@ function assembleDeterministicGraph(questionnaire = {}) {
   const nodes = [];
   const edges = [];
 
-  // 1. Add applicable canonical nodes
-  const nodeKeyList = [
+  const typologyLabel = constructionType === 'OTHER' && questionnaire.customConstructionType
+    ? questionnaire.customConstructionType
+    : constructionType.charAt(0) + constructionType.slice(1).toLowerCase();
+
+  // 1. Add applicable canonical nodes with typology-aware descriptions
+  const baseNodeKeys = [
     'title',
     'mojani',
     'tax_noc',
@@ -553,11 +730,28 @@ function assembleDeterministicGraph(questionnaire = {}) {
     'oc'
   ];
 
-  nodeKeyList.forEach((key) => {
+  baseNodeKeys.forEach((key) => {
     if (applicableNodeKeys.has(key) && CANONICAL_NODES[key]) {
-      nodes.push({ ...CANONICAL_NODES[key] });
+      const baseNode = CANONICAL_NODES[key];
+      nodes.push({
+        ...baseNode,
+        plainLanguageSummary: baseNode.plainLanguageSummary.replace(/residential/gi, typologyLabel.toLowerCase())
+      });
     }
   });
+
+  // 1b. Add typology-specific specialized nodes
+  if (constructionType === 'COMMERCIAL' && CANONICAL_NODES.comm_traffic_parking) {
+    nodes.push(CANONICAL_NODES.comm_traffic_parking);
+  } else if (constructionType === 'INSTITUTIONAL' && CANONICAL_NODES.inst_accessibility) {
+    nodes.push(CANONICAL_NODES.inst_accessibility);
+  } else if (constructionType === 'HOSPITALITY' && CANONICAL_NODES.hosp_env_tourism) {
+    nodes.push(CANONICAL_NODES.hosp_env_tourism);
+  } else if (constructionType === 'MIXED_USE' && CANONICAL_NODES.mixed_segregation) {
+    nodes.push(CANONICAL_NODES.mixed_segregation);
+  } else if (constructionType === 'INDUSTRIAL' && CANONICAL_NODES.ind_mpcb_dish) {
+    nodes.push(CANONICAL_NODES.ind_mpcb_dish);
+  }
 
   // 2. Assemble deterministic edges based on included nodes
   const includedIds = new Set(nodes.map((n) => n.id));
@@ -588,7 +782,19 @@ function assembleDeterministicGraph(questionnaire = {}) {
   }
 
   // Parallel NOCs after IOD
-  const parallelNocIds = ['node_tree_noc', 'node_hydraulic_noc', 'node_fire_noc', 'node_eco_noc', 'node_heritage_noc', 'node_airport_noc'];
+  const parallelNocIds = [
+    'node_tree_noc',
+    'node_hydraulic_noc',
+    'node_fire_noc',
+    'node_eco_noc',
+    'node_heritage_noc',
+    'node_airport_noc',
+    'node_comm_traffic_parking',
+    'node_inst_accessibility',
+    'node_hosp_env_tourism',
+    'node_mixed_segregation',
+    'node_ind_mpcb_dish'
+  ];
   parallelNocIds.forEach((nocId) => {
     if (includedIds.has(nocId) && includedIds.has('node_iod')) {
       edges.push({ id: `e_iod_${nocId}`, source: 'node_iod', target: nocId, label: 'Conditional IOD clause compliance' });
@@ -603,7 +809,7 @@ function assembleDeterministicGraph(questionnaire = {}) {
     edges.push({ id: 'e_cc_plinth', source: 'node_cc', target: 'node_plinth_check', label: 'Excavation to Plinth height' });
   }
   if (includedIds.has('node_plinth_check') && includedIds.has('node_oc')) {
-    edges.push({ id: 'e_plinth_oc', source: 'node_plinth_check', target: 'node_oc', label: 'Superstructure slabs & final finishes' });
+    edges.push({ id: 'e_plinth_oc', source: 'node_plinth_check', target: 'node_oc', label: 'Superstructure finishes to final OC' });
   }
 
   // Calculate totals
@@ -612,13 +818,16 @@ function assembleDeterministicGraph(questionnaire = {}) {
   const cityName = questionnaire.jurisdiction || 'Maharashtra';
 
   return {
-    taskId: `residential-building-permission-${cityName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-    taskTitle: `Tailored Permitting Pipeline: Residential Building in ${cityName}`,
-    jurisdiction: `${cityName} Municipal Authority (UDCPR 2020 / MahaBPAMS / RTS Act)`,
+    taskId: `${constructionType.toLowerCase()}-building-permission-${cityName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+    taskTitle: `Permitting Pipeline: ${typologyLabel} Development in ${cityName}`,
+    jurisdiction: `${cityName} Municipal Local Authority (UDCPR 2020 / MahaBPAMS / RTS Act)`,
+    constructionType,
+    customConstructionType: questionnaire.customConstructionType || '',
     totalEstimatedDays: totalDays,
     totalEstimatedCostINR: totalCost,
     legalReference: "Maharashtra Regional & Town Planning (MRTP) Act 1966 & UDCPR 2020",
     provenance: "deterministic_curated",
+    provenanceLabel: `Curated ${typologyLabel} blueprint (UDCPR 2020)`,
     eligibility,
     nodes,
     edges

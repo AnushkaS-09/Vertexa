@@ -302,9 +302,18 @@ export default function DocumentDrawer({
               </div>
             </div>
 
+            {/* Project / Construction Type Badge */}
+            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-slate-900/60 rounded-xl border border-slate-800">
+              <span className="text-slate-400">Project Type:</span>
+              <span className="font-bold text-indigo-300 uppercase">
+                {graphData?.constructionType || graphData?.eligibility?.constructionType || 'RESIDENTIAL'}
+              </span>
+            </div>
+
             {/* Print Header (Only in print) */}
             <div className="hidden print:block text-slate-800 text-xs mt-2 border-t pt-2">
               <div className="font-bold text-sm">{graphData?.taskTitle}</div>
+              <div>Project Type: {graphData?.constructionType || graphData?.eligibility?.constructionType || 'RESIDENTIAL'}</div>
               <div>Jurisdiction: {graphData?.jurisdiction}</div>
               <div>Legal Authority: {graphData?.legalReference}</div>
             </div>
@@ -475,15 +484,15 @@ export default function DocumentDrawer({
                     isStepCompleted
                       ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer'
                       : isStepAvailable
-                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 cursor-pointer active:scale-95'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60'
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 cursor-pointer active:scale-95'
+                        : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60'
                   )}
                   title={
                     isStepCompleted
                       ? 'Undo step completion'
                       : isStepAvailable
-                      ? 'Mark this step completed and advance to next step'
-                      : 'Prerequisites must be completed first'
+                        ? 'Mark this step completed and advance to next step'
+                        : 'Prerequisites must be completed first'
                   }
                 >
                   {isStepCompleted ? (

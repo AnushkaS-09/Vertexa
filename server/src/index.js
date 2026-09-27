@@ -40,7 +40,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     geminiConfigured: !!(GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here'),
     model: 'gemini-3.8-flash',
-    domain: 'Residential House Building Permitting in Maharashtra (UDCPR 2020)'
+    domain: 'Building & Construction Permitting in Maharashtra (UDCPR 2020 & MRTP Act 1966)',
+    supportedTypologies: ['RESIDENTIAL', 'COMMERCIAL', 'INSTITUTIONAL', 'HOSPITALITY', 'MIXED_USE', 'INDUSTRIAL', 'OTHER']
   });
 });
 
@@ -52,6 +53,7 @@ app.get('/api/tasks', (req, res) => {
       taskId: c.taskId,
       taskTitle: c.taskTitle,
       title: c.taskTitle,
+      constructionType: c.constructionType || 'RESIDENTIAL',
       jurisdiction: c.jurisdiction,
       totalEstimatedDays: c.totalEstimatedDays,
       estimatedDays: c.totalEstimatedDays,
@@ -84,7 +86,15 @@ app.post('/api/navigate', async (req, res) => {
   const { query = '', city = '', questionnaire = null } = req.body;
 
   // Build input params either from explicit questionnaire or from query/city
+  let detectedType = 'RESIDENTIAL';
+  if (/commercial|shop|mall|retail|office/i.test(query)) detectedType = 'COMMERCIAL';
+  else if (/school|college|hospital|institutional|clinic/i.test(query)) detectedType = 'INSTITUTIONAL';
+  else if (/hotel|resort|lodge|restaurant|hospitality/i.test(query)) detectedType = 'HOSPITALITY';
+  else if (/mixed[- ]use|shops and apartments/i.test(query)) detectedType = 'MIXED_USE';
+  else if (/industrial|factory|manufacturing|plant|warehouse/i.test(query)) detectedType = 'INDUSTRIAL';
+
   const parsedQuestionnaire = questionnaire || {
+    constructionType: detectedType,
     jurisdiction: city || 'Maharashtra',
     plotArea: 150,
     buildingHeight: /high-rise|15m|tall/i.test(query) ? 18.0 : 8.5,
@@ -96,30 +106,37 @@ app.post('/api/navigate', async (req, res) => {
     hasHighTensionLine: /high tension|ht wire|power line/i.test(query)
   };
 
+  if (!parsedQuestionnaire.constructionType) {
+    parsedQuestionnaire.constructionType = detectedType;
+  }
+
   // Evaluate deterministic eligibility first
   const eligibility = evaluateEligibility(parsedQuestionnaire);
 
-  // Dynamic Residential Civic Generation using Gemini API (if key configured)
+  // Dynamic Civic Generation using Gemini API (if key configured)
   const isKeyValid = GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here';
   
   if (isKeyValid) {
     try {
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
       const prompt = `You are an expert Town Planner and Municipal Law Specialist for Indian Urban Local Bodies (UDCPR 2020 / MRTP Act 1966).
-Deconstruct this Residential House / Building Permission request into a precise Directed Acyclic Graph (DAG) of municipal approvals, PreDCR CAD scrutiny, IOD, site inspections, plinth check, parallel NOCs, and Occupancy Certificate (OC).
+Deconstruct this Building & Permitting request for a ${parsedQuestionnaire.constructionType} construction project into a precise Directed Acyclic Graph (DAG) of municipal approvals, PreDCR CAD scrutiny, IOD, site inspections, plinth check, parallel NOCs, and Occupancy Certificate (OC).
 
-Plot Parameters & Eligibility Constraints:
+Project Parameters & Eligibility Constraints:
+- Construction Typology: ${parsedQuestionnaire.constructionType}
 - Jurisdiction: ${parsedQuestionnaire.jurisdiction}
 - Proposed Building Height: ${parsedQuestionnaire.buildingHeight}m
 - Plot Area: ${parsedQuestionnaire.plotArea} sq.m
 - Abutting Road Width: ${parsedQuestionnaire.roadWidth}m
 - Mandatory Parallel NOCs according to statutory rules engine: ${eligibility.applicable.map(a => a.name).join(', ')}
+- Clearances Requiring Verification: ${eligibility.uncertain.map(u => u.name).join(', ')}
 - Exempt Clearances: ${eligibility.exempt.map(e => e.name).join(', ')}
 
 Return valid JSON with exact schema:
 {
-  "taskId": "residential-building-permission-mh-custom",
-  "taskTitle": "Full Municipal Permitting Pipeline: Residential Building in ${parsedQuestionnaire.jurisdiction}",
+  "taskId": "${parsedQuestionnaire.constructionType.toLowerCase()}-building-permission-mh-custom",
+  "taskTitle": "Full Municipal Permitting Pipeline: ${parsedQuestionnaire.constructionType} Project in ${parsedQuestionnaire.jurisdiction}",
+  "constructionType": "${parsedQuestionnaire.constructionType}",
   "jurisdiction": "${parsedQuestionnaire.jurisdiction} Municipal Corporation / Council (UDCPR 2020 / MahaBPAMS)",
   "totalEstimatedDays": 90,
   "totalEstimatedCostINR": 58500,
@@ -151,7 +168,7 @@ Return valid JSON with exact schema:
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
-          systemInstruction: 'You are an authoritative town planning workflow generator specializing strictly in residential house construction and municipal building permits under Maharashtra UDCPR 2020.'
+          systemInstruction: 'You are an authoritative town planning workflow generator for construction projects under Maharashtra UDCPR 2020. You must respect the deterministic eligibility outputs and never invent unverified statutory approvals.'
         }
       });
       aiPromise.catch(() => {}); // prevent unhandledRejection if timeout triggers first
@@ -168,6 +185,7 @@ Return valid JSON with exact schema:
       if (validation.isValid) {
         return res.status(200).json({
           ...validation.sanitizedGraph,
+          constructionType: parsedQuestionnaire.constructionType,
           provenance: 'live_ai_grounded',
           provenanceLabel: 'Live AI-tailored roadmap (UDCPR 2020)',
           eligibility

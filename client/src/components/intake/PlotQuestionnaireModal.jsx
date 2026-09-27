@@ -28,6 +28,16 @@ const MAHARASHTRA_JURISDICTIONS = [
   { id: 'Nagpur', label: 'Nagpur Municipal Corporation (NMC)' }
 ];
 
+const CONSTRUCTION_TYPES = [
+  { id: 'RESIDENTIAL', label: 'Residential', desc: 'Bungalow, Villa, Apartments, Row House' },
+  { id: 'COMMERCIAL', label: 'Commercial', desc: 'Offices, Retail, Shopping Mall, Showroom' },
+  { id: 'INSTITUTIONAL', label: 'Institutional', desc: 'School, College, Hospital, Community Hall' },
+  { id: 'HOSPITALITY', label: 'Hospitality', desc: 'Hotel, Resort, Guest House, Lodge' },
+  { id: 'MIXED_USE', label: 'Mixed-Use', desc: 'Combined Residential + Commercial / Retail' },
+  { id: 'INDUSTRIAL', label: 'Industrial', desc: 'Factory, Workshop, Warehouse, Storage' },
+  { id: 'OTHER', label: 'Other', desc: 'Specialized or Custom Facility' }
+];
+
 export default function PlotQuestionnaireModal({
   isOpen,
   onClose,
@@ -36,6 +46,9 @@ export default function PlotQuestionnaireModal({
   loading = false
 }) {
   const [formData, setFormData] = useState(() => ({
+    constructionType: initialValues.constructionType || 'RESIDENTIAL',
+    customConstructionType: initialValues.customConstructionType || '',
+    mixedUseComponents: initialValues.mixedUseComponents || ['RESIDENTIAL', 'COMMERCIAL'],
     jurisdiction: initialValues.jurisdiction || 'Maharashtra',
     plotArea: initialValues.plotArea || 200,
     buildingHeight: initialValues.buildingHeight || 8.5,
@@ -50,6 +63,9 @@ export default function PlotQuestionnaireModal({
   React.useEffect(() => {
     if (isOpen) {
       setFormData({
+        constructionType: initialValues.constructionType || 'RESIDENTIAL',
+        customConstructionType: initialValues.customConstructionType || '',
+        mixedUseComponents: initialValues.mixedUseComponents || ['RESIDENTIAL', 'COMMERCIAL'],
         jurisdiction: initialValues.jurisdiction || 'Maharashtra',
         plotArea: initialValues.plotArea || 200,
         buildingHeight: initialValues.buildingHeight || 8.5,
@@ -70,6 +86,17 @@ export default function PlotQuestionnaireModal({
     onSubmitQuestionnaire(formData);
   };
 
+  const toggleMixedUseComponent = (comp) => {
+    const current = formData.mixedUseComponents || [];
+    if (current.includes(comp)) {
+      if (current.length > 1) {
+        setFormData({ ...formData, mixedUseComponents: current.filter((c) => c !== comp) });
+      }
+    } else {
+      setFormData({ ...formData, mixedUseComponents: [...current, comp] });
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
@@ -82,13 +109,13 @@ export default function PlotQuestionnaireModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                Plot & Construction Questionnaire
+                Project & Plot Questionnaire
                 <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
                   UDCPR 2020 Rules Engine
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
-                Answer simple questions about your plot to determine exactly which statutory NOCs apply vs are exempt.
+                Configure your project typology and plot parameters to generate the exact statutory approval pathway and NOC clearances.
               </p>
             </div>
           </div>
@@ -103,13 +130,88 @@ export default function PlotQuestionnaireModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
           
-          {/* Section 1: Jurisdiction & Dimensions */}
+          {/* Section 1: Project Typology */}
+          <div>
+            <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <Building2 className="w-4 h-4" />
+              1. Project & Construction Typology
+            </h3>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {CONSTRUCTION_TYPES.map((t) => {
+                const isSelected = formData.constructionType === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, constructionType: t.id })}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-indigo-950/80 border-indigo-500 ring-1 ring-indigo-500/50 shadow-md shadow-indigo-950/40 text-white'
+                        : 'bg-slate-850/80 border-slate-750 text-slate-300 hover:border-slate-650 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-xs font-bold">{t.label}</span>
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                    </div>
+                    <p className="text-[10px] text-slate-400 line-clamp-2 leading-snug">
+                      {t.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Conditional Sub-Question: Other Description */}
+            {formData.constructionType === 'OTHER' && (
+              <div className="mt-3 p-3.5 rounded-xl bg-slate-850 border border-slate-700 animate-in fade-in duration-150 space-y-1">
+                <label className="block text-xs font-medium text-slate-200">
+                  Describe Custom Construction Type
+                </label>
+                <input
+                  type="text"
+                  value={formData.customConstructionType}
+                  onChange={(e) => setFormData({ ...formData, customConstructionType: e.target.value })}
+                  placeholder="e.g. Data Center, Sports Complex, Film Studio, Solar Farm..."
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            )}
+
+            {/* Conditional Sub-Question: Mixed Use Components */}
+            {formData.constructionType === 'MIXED_USE' && (
+              <div className="mt-3 p-3.5 rounded-xl bg-slate-850 border border-slate-700 animate-in fade-in duration-150 space-y-2">
+                <label className="block text-xs font-medium text-slate-200">
+                  Select Primary Mixed-Use Components:
+                </label>
+                <div className="flex flex-wrap gap-3 text-xs">
+                  {['RESIDENTIAL', 'COMMERCIAL', 'INSTITUTIONAL', 'HOSPITALITY', 'OTHER'].map((comp) => {
+                    const isChecked = (formData.mixedUseComponents || []).includes(comp);
+                    return (
+                      <label key={comp} className="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleMixedUseComponent(comp)}
+                          className="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span>{comp.charAt(0) + comp.slice(1).toLowerCase()}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Jurisdiction & Dimensions */}
           <div>
             <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <LandPlot className="w-4 h-4" />
-              1. Location & Plot Geometry
+              2. Location & Plot Geometry
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -209,11 +311,11 @@ export default function PlotQuestionnaireModal({
             </div>
           </div>
 
-          {/* Section 2: Environmental & Site Specifics */}
+          {/* Section 3: Environmental & Site Specifics */}
           <div className="pt-2 border-t border-slate-800">
             <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <Trees className="w-4 h-4" />
-              2. Environmental & Statutory Clearances
+              3. Environmental & Statutory Clearances
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,6 +1,7 @@
 {
   "taskId": "residential-building-permission-mh-full",
   "taskTitle": "Full Municipal Permitting Pipeline: Residential Building (G+2 / Independent Bungalow)",
+  "constructionType": "RESIDENTIAL",
   "jurisdiction": "Urban Local Bodies across Maharashtra (UDCPR 2020 / MahaBPAMS / RTS Act)",
   "totalEstimatedDays": 90,
   "totalEstimatedCostINR": 58500,

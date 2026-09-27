@@ -40,20 +40,28 @@ export default function HomePage({
 
   const samplePrompts = [
     {
-      title: 'Standard G+2 Bungalow in Pune',
+      title: 'Residential Bungalow (Pune)',
       query: 'I want to construct a residential G+2 house in Pune'
     },
     {
-      title: 'Residential House in Mumbai',
-      query: 'Residential house construction with AutoDCR scrutiny in Mumbai'
+      title: 'Commercial Complex (Mumbai)',
+      query: 'I want to construct a commercial shopping and office complex in Mumbai'
     },
     {
-      title: 'Hill Station Eco-House (Matheran)',
-      query: 'Residential house in Matheran Eco-Sensitive Zone'
+      title: 'Institutional School (Thane)',
+      query: 'I want to construct a school and educational building in Thane'
     },
     {
-      title: 'High-Rise Residential (>15m)',
-      query: 'Residential building with Chief Fire Officer NOC and AAI clearance'
+      title: 'Hospitality Hotel (Pune)',
+      query: 'I want to build a hotel and resort in Pune'
+    },
+    {
+      title: 'Mixed-Use Building (PCMC)',
+      query: 'I want a mixed-use building with retail shops and residential apartments'
+    },
+    {
+      title: 'Industrial Warehouse (Thane)',
+      query: 'I want to build an industrial manufacturing plant and warehouse'
     }
   ];
 
@@ -61,20 +69,20 @@ export default function HomePage({
     <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100 font-sans select-none">
       {/* Hero Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-12">
-        
+
         {/* Top Header / Welcome Banner */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/60 text-indigo-300 text-xs font-semibold shadow-sm">
             <Compass className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-            <span>Maharashtra Residential Permitting Navigator • UDCPR 2020 & MRTP Act 1966</span>
+            <span>Maharashtra Construction Permitting Navigator • UDCPR 2020 & MRTP Act 1966</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-            Welcome to Vertexa
+            Welcome to CivicPath
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 leading-relaxed">
-            Your interactive statutory guide to navigating municipal building permissions, architectural scrutiny, and parallel departmental NOC clearances for residential homes across Maharashtra.
+            Your interactive statutory guide to navigating municipal building permissions, architectural scrutiny, and parallel departmental NOC clearances for residential, commercial, institutional, hospitality, mixed-use, and industrial construction projects across Maharashtra.
           </p>
         </div>
 
@@ -85,7 +93,7 @@ export default function HomePage({
               Start with Your Project Requirement
             </label>
             <p className="text-xs text-slate-400">
-              Describe what you want to build or what approval you need. Clicking <strong className="text-slate-200">Construct</strong> opens the Plot Questionnaire to tailor your statutory roadmap.
+              Describe what you want to build or what approval you need (Residential, Commercial, Institutional, Hospitality, Mixed-Use, Industrial, or Other). Clicking <strong className="text-slate-200">Construct</strong> opens the Plot Questionnaire to tailor your statutory roadmap.
             </p>
           </div>
 
@@ -103,7 +111,7 @@ export default function HomePage({
                       onClearScopeFeedback();
                     }
                   }}
-                  placeholder="e.g., I want to construct a residential G+2 house in Pune..."
+                  placeholder="e.g., I want to construct a commercial complex in Pune / residential house / school..."
                   className="w-full bg-slate-850 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-inner"
                 />
               </div>
@@ -197,7 +205,7 @@ export default function HomePage({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-lg font-bold text-white tracking-tight">What Vertexa Does</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">What CivicPath Does</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -292,7 +300,7 @@ export default function HomePage({
               </span>
               <h4 className="text-xs font-bold text-slate-200">Track Progress Step-by-Step</h4>
               <p className="text-[11px] text-slate-400">
-                Click "Mark Step as Completed" to track progress. Vertexa automatically highlights the next consecutive statutory step.
+                Click "Mark Step as Completed" to track progress. CivicPath automatically highlights the next consecutive statutory step.
               </p>
             </div>
 
@@ -383,10 +391,10 @@ export default function HomePage({
           <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Building className="w-4 h-4 text-indigo-400" />
-              How Vertexa Helps You
+              How CivicPath Helps You
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Municipal permitting in Maharashtra involves multiple departments (TILR, Town Planning, Tree Authority, CFO, Water Supply, Heritage). Instead of a confusing list of rules, Vertexa translates statutory regulations (UDCPR 2020 & MRTP Act 1966) into an orderly, transparent roadmap tailored to your specific plot.
+              Municipal permitting in Maharashtra involves multiple departments (TILR, Town Planning, Tree Authority, CFO, Water Supply, Heritage). Instead of a confusing list of rules, CivicPath translates statutory regulations (UDCPR 2020 & MRTP Act 1966) into an orderly, transparent roadmap tailored to your specific plot.
             </p>
           </div>
 
@@ -396,7 +404,7 @@ export default function HomePage({
               How to Track Progress
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              As you obtain clearance documents from authorities, click <strong>"Mark as Completed"</strong> in the Document Drawer. Vertexa visually ticks the node on the interactive graph, computes your progress percentage, and advances your active focus to the next consecutive prerequisite step.
+              As you obtain clearance documents from authorities, click <strong>"Mark as Completed"</strong> in the Document Drawer. CivicPath visually ticks the node on the interactive graph, computes your progress percentage, and advances your active focus to the next consecutive prerequisite step.
             </p>
           </div>
         </div>
@@ -407,7 +415,7 @@ export default function HomePage({
           <div className="space-y-1">
             <h4 className="font-semibold text-slate-200">Informational Guidance Notice</h4>
             <p className="leading-relaxed text-[11px]">
-              Vertexa provides informational statutory roadmap guidance based on Maharashtra UDCPR 2020 and the MRTP Act 1966. It does not constitute formal legal counsel or guaranteed municipal sanction. Always verify specific site conditions and submit formal proposals through a Council of Architecture (COA) registered architect or licensed engineer.
+              CivicPath provides informational statutory roadmap guidance based on Maharashtra UDCPR 2020 and the MRTP Act 1966. It does not constitute formal legal counsel or guaranteed municipal sanction. Always verify specific site conditions and submit formal proposals through a Council of Architecture (COA) registered architect or licensed engineer.
             </p>
           </div>
         </div>
