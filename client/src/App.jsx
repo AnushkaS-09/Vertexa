@@ -280,6 +280,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem('vertexa_plot_questionnaire');
       return saved ? JSON.parse(saved) : {
+        constructionType: 'RESIDENTIAL',
+        customConstructionType: '',
+        mixedUseComponents: [],
         jurisdiction: 'Pune',
         plotArea: 200,
         buildingHeight: 8.5,
@@ -292,6 +295,9 @@ export default function App() {
       };
     } catch {
       return {
+        constructionType: 'RESIDENTIAL',
+        customConstructionType: '',
+        mixedUseComponents: [],
         jurisdiction: 'Pune',
         plotArea: 200,
         buildingHeight: 8.5,
@@ -392,8 +398,12 @@ export default function App() {
     // 2. Clear any previous error/feedback
     setScopeFeedback(null);
 
-    // 3. Auto-detect city or plot keywords to preload questionnaire
+    // 3. Auto-detect construction type, city, or plot keywords to preload questionnaire
     const updatedDraft = { ...questionnaireState };
+    if (classification.constructionType) {
+      updatedDraft.constructionType = classification.constructionType;
+    }
+
     if (/mumbai/i.test(q)) updatedDraft.jurisdiction = 'Mumbai';
     else if (/pune/i.test(q)) updatedDraft.jurisdiction = 'Pune';
     else if (/matheran/i.test(q)) {
@@ -431,7 +441,7 @@ export default function App() {
     setSelectedCity(formData.jurisdiction);
     setIsQuestionnaireOpen(false);
     fetchRoadmap(
-      searchQuery || `Residential building in ${formData.jurisdiction}`,
+      searchQuery || `${formData.constructionType || 'Building'} permission in ${formData.jurisdiction}`,
       formData.jurisdiction,
       formData
     );
@@ -491,14 +501,14 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent flex items-center gap-2">
-              Vertexa
+              CivicPath
               <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-950/80 text-indigo-400 border border-indigo-800/60 hidden sm:inline-block">
                 UDCPR 2020 & Acts
               </span>
             </h1>
             <p className="text-[11px] text-slate-400 hidden sm:block truncate max-w-[340px]">
               {currentView === 'home'
-                ? 'Maharashtra Residential Permitting Navigator'
+                ? 'Maharashtra Construction Permitting Navigator'
                 : (graphData?.taskTitle || 'Statutory Municipal Clearances Roadmap')}
             </p>
           </div>
@@ -515,7 +525,7 @@ export default function App() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter custom requirement (e.g. Pune G+2 Bungalow, Matheran Eco-Zone, High-Rise)..."
+              placeholder="Enter custom requirement (e.g. Commercial complex Pune, School, Hotel, Factory)..."
               className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -546,7 +556,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setCurrentView('home')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
               title="Return to Home screen"
             >
               <Home className="w-4 h-4 text-indigo-400" />
@@ -617,19 +627,23 @@ export default function App() {
       ) : (
         /* VIEW 2: ROADMAP WORKSPACE */
         <>
-          {/* Sub-Header Bar: Jurisdiction & Provenance (Hidden during print) */}
+          {/* Sub-Header Bar: Jurisdiction, Typology & Provenance (Hidden during print) */}
           <div className="h-10 shrink-0 bg-slate-950/95 border-b border-slate-800 px-4 flex items-center justify-between gap-2 overflow-x-auto text-xs no-print">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setCurrentView('home')}
-                className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-300 font-medium cursor-pointer mr-2"
+                className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-300 font-medium cursor-pointer mr-1"
               >
                 <span>← Home</span>
               </button>
               <div className="flex items-center gap-1 text-slate-300 text-[11px]">
                 <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Authority: <strong>{graphData?.jurisdiction?.split('(')[0]?.trim() || questionnaireState.jurisdiction || 'Maharashtra'}</strong></span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1 text-slate-300 text-[11px] px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-800/50">
+                <Building2 className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Type: <strong className="text-indigo-300 uppercase">{graphData?.constructionType || questionnaireState?.constructionType || 'RESIDENTIAL'}</strong></span>
               </div>
             </div>
 
