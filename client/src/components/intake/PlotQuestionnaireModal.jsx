@@ -28,73 +28,6 @@ const MAHARASHTRA_JURISDICTIONS = [
   { id: 'Nagpur', label: 'Nagpur Municipal Corporation (NMC)' }
 ];
 
-const QUESTIONNAIRE_PRESETS = [
-  {
-    id: 'preset-bungalow',
-    title: 'Standard G+2 Bungalow',
-    desc: 'Low-rise private home on urban plot',
-    data: {
-      jurisdiction: 'Pune',
-      plotArea: 200,
-      buildingHeight: 8.5,
-      roadWidth: 9.0,
-      treesAffected: 0,
-      heritageZone: false,
-      airportZone: false,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'preset-eco-matheran',
-    title: 'Hill Station Eco-House (Matheran)',
-    desc: 'Eco-sensitive zone & green norms',
-    data: {
-      jurisdiction: 'Matheran',
-      plotArea: 350,
-      buildingHeight: 6.5,
-      roadWidth: 6.0,
-      treesAffected: 1,
-      heritageZone: false,
-      airportZone: false,
-      ecoSensitiveZone: true,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'preset-highrise',
-    title: 'Residential High-Rise (>15m)',
-    desc: 'Multi-family with mandatory CFO Fire NOC',
-    data: {
-      jurisdiction: 'Mumbai',
-      plotArea: 600,
-      buildingHeight: 18.0,
-      roadWidth: 12.0,
-      treesAffected: 0,
-      heritageZone: false,
-      airportZone: true,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'preset-trees-heritage',
-    title: 'Heritage Precinct with Trees',
-    desc: 'Requires Tree Authority & MHCC NOC',
-    data: {
-      jurisdiction: 'Pune',
-      plotArea: 300,
-      buildingHeight: 9.0,
-      roadWidth: 9.0,
-      treesAffected: 3,
-      heritageZone: true,
-      airportZone: false,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  }
-];
-
 export default function PlotQuestionnaireModal({
   isOpen,
   onClose,
@@ -114,11 +47,23 @@ export default function PlotQuestionnaireModal({
     hasHighTensionLine: initialValues.hasHighTensionLine || false
   }));
 
-  if (!isOpen) return null;
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        jurisdiction: initialValues.jurisdiction || 'Maharashtra',
+        plotArea: initialValues.plotArea || 200,
+        buildingHeight: initialValues.buildingHeight || 8.5,
+        roadWidth: initialValues.roadWidth || 9.0,
+        treesAffected: initialValues.treesAffected || 0,
+        heritageZone: initialValues.heritageZone || false,
+        airportZone: initialValues.airportZone || false,
+        ecoSensitiveZone: initialValues.ecoSensitiveZone || false,
+        hasHighTensionLine: initialValues.hasHighTensionLine || false
+      });
+    }
+  }, [isOpen, initialValues]);
 
-  const handlePresetClick = (preset) => {
-    setFormData({ ...preset.data });
-  };
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -155,30 +100,6 @@ export default function PlotQuestionnaireModal({
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="px-6 py-3 bg-slate-950/60 border-b border-slate-800/80">
-          <p className="text-[11px] font-semibold text-slate-400 mb-2 uppercase tracking-wider">
-            Quick Scenario Presets:
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {QUESTIONNAIRE_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => handlePresetClick(preset)}
-                className="text-left p-2.5 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-750 hover:border-indigo-500/50 transition-all text-xs group cursor-pointer"
-              >
-                <span className="font-bold text-slate-200 group-hover:text-indigo-300 block truncate">
-                  {preset.title}
-                </span>
-                <span className="text-[10px] text-slate-400 line-clamp-1">
-                  {preset.desc}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Form Body */}
@@ -428,7 +349,7 @@ export default function PlotQuestionnaireModal({
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
-              <span>{loading ? 'Evaluating UDCPR Rules...' : 'Build Tailored Roadmap'}</span>
+              <span>{loading ? 'Evaluating UDCPR Rules...' : 'Construct Tailored Roadmap'}</span>
             </button>
           </div>
         </div>

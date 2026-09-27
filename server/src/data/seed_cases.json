@@ -62,7 +62,7 @@
       {
         "id": "node_autodcr",
         "stage": "Stage 2: Architectural Scrutiny & PreDCR",
-        "title": "PreDCR CAD Validation & Building Proposal Submission",
+        "title": "Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)",
         "department": "Town Planning & Building Proposal Dept (BPAMS / MahaDCR)",
         "type": "submission",
         "estimatedDays": 10,
@@ -97,7 +97,7 @@
       {
         "id": "node_iod",
         "stage": "Stage 2: Architectural Scrutiny & PreDCR",
-        "title": "Intimation of Disapproval (IOD) / Conditional Sanction",
+        "title": "Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)",
         "department": "Executive Engineer / Building Proposal Department",
         "type": "conditional_approval",
         "estimatedDays": 5,
@@ -201,6 +201,7 @@
     "edges": [
       { "id": "e_title_mojani", "source": "node_title", "target": "node_mojani", "label": "Title deed required for demarcation" },
       { "id": "e_title_autodcr", "source": "node_title", "target": "node_autodcr", "label": "Upload title proof to Appendix A-1" },
+      { "id": "e_mojani_tax", "source": "node_mojani", "target": "node_tax_noc", "label": "Demarcated plot assessment & tax clearance" },
       { "id": "e_mojani_autodcr", "source": "node_mojani", "target": "node_autodcr", "label": "Coordinates mapped into CAD drawing" },
       { "id": "e_tax_autodcr", "source": "node_tax_noc", "target": "node_autodcr", "label": "No-dues receipt required for scrutiny" },
       { "id": "e_autodcr_site", "source": "node_autodcr", "target": "node_site_inspection", "label": "CAD scrutiny clearance triggers site visit" },

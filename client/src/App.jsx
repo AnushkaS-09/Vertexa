@@ -29,7 +29,9 @@ import RoadmapCanvas from './components/graph/RoadmapCanvas';
 import DocumentDrawer from './components/sidebar/DocumentDrawer';
 import JargonBusterModal from './components/common/JargonBusterModal';
 import PlotQuestionnaireModal from './components/intake/PlotQuestionnaireModal';
+import HomePage from './components/home/HomePage';
 import { API_ENDPOINTS } from './config/api';
+import { classifyRequirementScope } from './utils/scopeClassifier';
 
 // Helper to determine the next consecutive step in the workflow sequence
 function getNextConsecutiveStep(currentNodeId, nodes = [], edges = [], completedSet = new Set()) {
@@ -122,7 +124,7 @@ const FALLBACK_SEED_GRAPH = {
     {
       id: "node_autodcr",
       stage: "Stage 2: Architectural Scrutiny & PreDCR",
-      title: "Architect CAD Plan Submission (AutoDCR Scrutiny)",
+      title: "Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)",
       department: "Town Planning Scrutiny Cell (MahaBPAMS)",
       type: "submission",
       estimatedDays: 10,
@@ -155,7 +157,7 @@ const FALLBACK_SEED_GRAPH = {
     {
       id: "node_iod",
       stage: "Stage 2: Architectural Scrutiny & PreDCR",
-      title: "Intimation of Disapproval (IOD) / Conditional Sanction",
+      title: "Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)",
       department: "Executive Engineer / Building Proposal Department",
       type: "conditional_approval",
       estimatedDays: 5,
@@ -245,6 +247,7 @@ const FALLBACK_SEED_GRAPH = {
   edges: [
     { id: "e_title_mojani", source: "node_title", target: "node_mojani", label: "Title deed required for demarcation" },
     { id: "e_title_autodcr", source: "node_title", target: "node_autodcr", label: "Upload title proof to Appendix A-1" },
+    { id: "e_mojani_tax", source: "node_mojani", target: "node_tax_noc", label: "Demarcated plot assessment & tax clearance" },
     { id: "e_mojani_autodcr", source: "node_mojani", target: "node_autodcr", label: "Coordinates mapped into CAD drawing" },
     { id: "e_tax_autodcr", source: "node_tax_noc", target: "node_autodcr", label: "No-dues receipt required for scrutiny" },
     { id: "e_autodcr_site", source: "node_autodcr", target: "node_site_inspection", label: "CAD scrutiny clearance triggers site visit" },
@@ -258,86 +261,13 @@ const FALLBACK_SEED_GRAPH = {
   ]
 };
 
-const PRESETS = [
-  {
-    id: 'res-full-pipeline',
-    label: 'Standard Bungalow (G+2)',
-    icon: Home,
-    query: 'Residential House building permission G+2 Bungalow UDCPR 2020',
-    city: 'Pune',
-    questionnaire: {
-      jurisdiction: 'Pune',
-      plotArea: 200,
-      buildingHeight: 8.5,
-      roadWidth: 9.0,
-      treesAffected: 0,
-      heritageZone: false,
-      airportZone: false,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'res-hill-station',
-    label: 'Hill Station Eco-House (Matheran)',
-    icon: Mountain,
-    query: 'Residential Bungalow construction in Matheran Eco-Sensitive Zone',
-    city: 'Matheran',
-    questionnaire: {
-      jurisdiction: 'Matheran',
-      plotArea: 350,
-      buildingHeight: 6.5,
-      roadWidth: 6.0,
-      treesAffected: 1,
-      heritageZone: false,
-      airportZone: false,
-      ecoSensitiveZone: true,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'res-highrise',
-    label: 'High-Rise Residential (>15m)',
-    icon: Building2,
-    query: 'Residential Building with CFO Fire NOC and AAI height clearance',
-    city: 'Mumbai',
-    questionnaire: {
-      jurisdiction: 'Mumbai',
-      plotArea: 600,
-      buildingHeight: 18.0,
-      roadWidth: 12.0,
-      treesAffected: 0,
-      heritageZone: false,
-      airportZone: true,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  },
-  {
-    id: 'res-heritage-trees',
-    label: 'Heritage Zone & Trees',
-    icon: Trees,
-    query: 'Residential house construction near heritage monument with tree felling permission',
-    city: 'Pune',
-    questionnaire: {
-      jurisdiction: 'Pune',
-      plotArea: 300,
-      buildingHeight: 9.0,
-      roadWidth: 9.0,
-      treesAffected: 3,
-      heritageZone: true,
-      airportZone: false,
-      ecoSensitiveZone: false,
-      hasHighTensionLine: false
-    }
-  }
-];
-
 export default function App() {
+  const [currentView, setCurrentView] = useState('home'); // 'home' | 'roadmap'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('Maharashtra');
   const [graphData, setGraphData] = useState(FALLBACK_SEED_GRAPH);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [hasConstructedRoadmap, setHasConstructedRoadmap] = useState(false);
   const [completedNodes, setCompletedNodes] = useState(() => {
     try {
       const saved = localStorage.getItem('vertexa_completed_nodes');
@@ -380,6 +310,7 @@ export default function App() {
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [scopeFeedback, setScopeFeedback] = useState(null);
 
   // Sync completedNodes to localStorage
   useEffect(() => {
@@ -403,10 +334,11 @@ export default function App() {
   const fetchRoadmap = useCallback(async (query, city, customQuestionnaire = null) => {
     setLoading(true);
     try {
+      const effectiveQuestionnaire = customQuestionnaire || questionnaireState;
       const payload = {
         query: query || '',
-        city: city || 'Maharashtra',
-        questionnaire: customQuestionnaire || questionnaireState
+        city: city || effectiveQuestionnaire.jurisdiction || 'Maharashtra',
+        questionnaire: effectiveQuestionnaire
       };
 
       const response = await axios.post(
@@ -417,48 +349,92 @@ export default function App() {
 
       if (response.data && response.data.nodes && response.data.nodes.length > 0) {
         setGraphData(response.data);
-        // Select first step if none selected
         if (response.data.nodes.length > 0) {
           setSelectedNode(response.data.nodes[0]);
         }
       } else {
         setGraphData(FALLBACK_SEED_GRAPH);
       }
+      setHasConstructedRoadmap(true);
+      setCurrentView('roadmap');
     } catch (err) {
       console.warn('[Network/API Fallback] Using offline statutory seed graph:', err.message);
       setGraphData(FALLBACK_SEED_GRAPH);
+      setHasConstructedRoadmap(true);
+      setCurrentView('roadmap');
     } finally {
       setLoading(false);
     }
   }, [questionnaireState]);
 
-  // Initial load
-  useEffect(() => {
-    fetchRoadmap('Residential house building permission', questionnaireState.jurisdiction || 'Pune', questionnaireState);
-  }, []); // Run once on mount
+  // Start Construct workflow with Scope / Intent Gate
+  const handleStartConstruct = (query) => {
+    const q = (query || searchQuery || '').trim();
+
+    // 1. Evaluate Custom Requirement Scope & Intent Gate
+    const classification = classifyRequirementScope(q);
+
+    if (classification.status !== 'IN_SCOPE') {
+      setScopeFeedback({
+        status: classification.status,
+        message: classification.message,
+        query: q
+      });
+      // Do NOT open the plot questionnaire!
+      setIsQuestionnaireOpen(false);
+      // Ensure user is on the Home page to view the clear guidance message
+      if (currentView !== 'home') {
+        setCurrentView('home');
+      }
+      return;
+    }
+
+    // 2. Clear any previous error/feedback
+    setScopeFeedback(null);
+
+    // 3. Auto-detect city or plot keywords to preload questionnaire
+    const updatedDraft = { ...questionnaireState };
+    if (/mumbai/i.test(q)) updatedDraft.jurisdiction = 'Mumbai';
+    else if (/pune/i.test(q)) updatedDraft.jurisdiction = 'Pune';
+    else if (/matheran/i.test(q)) {
+      updatedDraft.jurisdiction = 'Matheran';
+      updatedDraft.ecoSensitiveZone = true;
+    } else if (/thane/i.test(q)) updatedDraft.jurisdiction = 'Thane';
+    else if (/pcmc|pimpri/i.test(q)) updatedDraft.jurisdiction = 'Pimpri-Chinchwad';
+
+    if (/high-rise|15m|tall/i.test(q)) updatedDraft.buildingHeight = 18.0;
+    if (/heritage/i.test(q)) updatedDraft.heritageZone = true;
+    if (/airport|funnel/i.test(q)) updatedDraft.airportZone = true;
+    if (/tree/i.test(q)) updatedDraft.treesAffected = 2;
+
+    setQuestionnaireState(updatedDraft);
+
+    // 4. Launch Plot Questionnaire for user confirmation
+    setIsQuestionnaireOpen(true);
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    fetchRoadmap(searchQuery, selectedCity);
-  };
-
-  const handlePresetSelect = (preset) => {
-    setSearchQuery(preset.query);
-    setSelectedCity(preset.city);
-    if (preset.questionnaire) {
-      setQuestionnaireState(preset.questionnaire);
-      fetchRoadmap(preset.query, preset.city, preset.questionnaire);
-    } else {
-      fetchRoadmap(preset.query, preset.city);
-    }
+    handleStartConstruct(searchQuery);
   };
 
   const handleQuestionnaireSubmit = (formData) => {
+    // Reset completed progress for a newly constructed roadmap
+    setCompletedNodes(new Set());
+    try {
+      localStorage.removeItem('vertexa_completed_nodes');
+    } catch (e) {
+      console.warn('Failed to clear completed nodes storage:', e);
+    }
+
     setQuestionnaireState(formData);
     setSelectedCity(formData.jurisdiction);
     setIsQuestionnaireOpen(false);
-    fetchRoadmap(`Residential building in ${formData.jurisdiction}`, formData.jurisdiction, formData);
+    fetchRoadmap(
+      searchQuery || `Residential building in ${formData.jurisdiction}`,
+      formData.jurisdiction,
+      formData
+    );
   };
 
   const handleSelectNode = useCallback((nodeData) => {
@@ -474,6 +450,16 @@ export default function App() {
       const willComplete = explicitStatus ? explicitStatus === 'completed' : !prev.has(nodeId);
 
       if (willComplete) {
+        // Enforce strict prerequisite validation: verify that all incoming parent prerequisites are in completedNodes!
+        if (graphData?.edges && graphData.edges.length > 0) {
+          const parentEdges = graphData.edges.filter((e) => e.target === nodeId);
+          const allParentsCompleted = parentEdges.every((e) => prev.has(e.source));
+          if (!allParentsCompleted) {
+            console.warn(`[Prerequisite Blocked] Cannot complete ${nodeId}: all preceding steps must be completed first.`);
+            return prev;
+          }
+        }
+
         next.add(nodeId);
 
         // Automatically advance to the next consecutive step in the workflow sequence
@@ -495,24 +481,30 @@ export default function App() {
       {/* Top Navigation Bar (Hidden during print) */}
       <header className="h-16 shrink-0 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between gap-4 z-30 shadow-md no-print">
         {/* Brand & Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
+        <div
+          onClick={() => setCurrentView('home')}
+          className="flex items-center gap-3 cursor-pointer group"
+          title="Return to Home page"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
             <Compass className="w-6 h-6 animate-pulse" />
           </div>
           <div>
             <h1 className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent flex items-center gap-2">
-              CivicPath Visualizer
+              Vertexa
               <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-950/80 text-indigo-400 border border-indigo-800/60 hidden sm:inline-block">
                 UDCPR 2020 & Acts
               </span>
             </h1>
             <p className="text-[11px] text-slate-400 hidden sm:block truncate max-w-[340px]">
-              {graphData?.taskTitle || 'Statutory Municipal Clearances Roadmap'}
+              {currentView === 'home'
+                ? 'Maharashtra Residential Permitting Navigator'
+                : (graphData?.taskTitle || 'Statutory Municipal Clearances Roadmap')}
             </p>
           </div>
         </div>
 
-        {/* Center: Search Form */}
+        {/* Center: Search Form (Visible for rapid construction) */}
         <form
           onSubmit={handleSearchSubmit}
           className="hidden md:flex items-center gap-2 flex-1 max-w-xl mx-4"
@@ -523,7 +515,7 @@ export default function App() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search custom requirement (e.g. Pune G+2 Bungalow, Matheran Eco-Zone, High-Rise)..."
+              placeholder="Enter custom requirement (e.g. Pune G+2 Bungalow, Matheran Eco-Zone, High-Rise)..."
               className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -536,19 +528,42 @@ export default function App() {
             {loading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Deconstructing...</span>
+                <span>Constructing...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Deconstruct</span>
+                <span>Construct</span>
               </>
             )}
           </button>
         </form>
 
-        {/* Right Actions: Plot Questionnaire, Jargon Buster & Mobile Drawer Toggle */}
+        {/* Right Actions: Navigation, Plot Questionnaire, Jargon Buster & Mobile Drawer Toggle */}
         <div className="flex items-center gap-2">
+          {/* Home / Roadmap View Switcher */}
+          {currentView === 'roadmap' ? (
+            <button
+              type="button"
+              onClick={() => setCurrentView('home')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              title="Return to Home screen"
+            >
+              <Home className="w-4 h-4 text-indigo-400" />
+              <span className="hidden sm:inline">Home</span>
+            </button>
+          ) : hasConstructedRoadmap && (
+            <button
+              type="button"
+              onClick={() => setCurrentView('roadmap')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-950/90 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
+              title="View your active generated roadmap"
+            >
+              <Compass className="w-4 h-4 text-indigo-400" />
+              <span className="hidden sm:inline">Active Roadmap</span>
+            </button>
+          )}
+
           {/* Plot Questionnaire Intake Trigger */}
           <button
             type="button"
@@ -564,132 +579,146 @@ export default function App() {
           <button
             type="button"
             onClick={() => setIsJargonModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
             title="Open Civic Jargon Buster glossary"
           >
             <BookOpen className="w-4 h-4 text-indigo-400" />
             <span className="hidden sm:inline">Jargon Buster</span>
           </button>
 
-          {/* Mobile Drawer Toggle */}
-          <button
-            type="button"
-            onClick={() => setMobileDrawerOpen((prev) => !prev)}
-            className="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 cursor-pointer"
-            title="Toggle Document Drawer"
-          >
-            {mobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Preset Pills & Provenance Bar (Hidden during print) */}
-      <div className="h-10 shrink-0 bg-slate-950/90 border-b border-slate-800 px-4 flex items-center justify-between gap-2 overflow-x-auto text-xs no-print">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider shrink-0">
-            Presets:
-          </span>
-          {PRESETS.map((preset) => {
-            const Icon = preset.icon;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => handlePresetSelect(preset)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-medium transition-colors shrink-0 cursor-pointer"
-              >
-                <Icon className="w-3 h-3 text-indigo-400" />
-                {preset.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Provenance & Jurisdiction Status */}
-        <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-400">
-          {/* Provenance Badge */}
-          <div className="flex items-center gap-1.5">
-            <span className={clsx(
-              "w-2 h-2 rounded-full",
-              graphData?.provenance === 'live_ai_grounded' ? "bg-emerald-400 animate-pulse" : "bg-indigo-400"
-            )} />
-            <span className="text-slate-300 font-medium">
-              {graphData?.provenanceLabel || (graphData?.provenance === 'live_ai_grounded' ? 'Live AI-tailored' : 'Statutory UDCPR blueprint')}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Authority: <strong>{graphData?.jurisdiction?.split('(')[0]?.trim() || questionnaireState.jurisdiction || 'Maharashtra'}</strong></span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Workspace Layout (Canvas + Collapsible Right Drawer) */}
-      <main className="flex-1 flex overflow-hidden relative">
-        {/* Left: ReactFlow Interactive DAG Canvas */}
-        <div className="flex-1 min-w-0 h-full relative">
-          <RoadmapCanvas
-            graphData={graphData}
-            onSelectNode={handleSelectNode}
-            selectedNodeId={selectedNode?.id}
-            completedNodes={completedNodes}
-            onToggleComplete={handleToggleComplete}
-          />
-
-          {/* Legal / Statutory Guidance Disclaimer */}
-          <div className="absolute bottom-3 left-4 z-10 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800/80 text-[11px] text-slate-400 shadow-md">
-            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span>Statutory guidance only — verify with your Planning Authority or a licensed architect.</span>
-          </div>
-
-          {/* Floating Reopen Button when Sidebar is Minimized */}
-          {!isSidebarOpen && (
+          {/* Mobile Drawer Toggle (Only active in roadmap view) */}
+          {currentView === 'roadmap' && (
             <button
               type="button"
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute right-4 top-14 z-20 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/95 hover:bg-slate-850 text-slate-100 border border-slate-700/80 shadow-2xl backdrop-blur-md transition-all hover:border-indigo-500/60 group cursor-pointer"
-              title="Open Master Dossier & Step Inspector"
+              onClick={() => setMobileDrawerOpen((prev) => !prev)}
+              className="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 cursor-pointer"
+              title="Toggle Document Drawer"
             >
-              <PanelRightOpen className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-semibold">
-                {selectedNode ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-slate-400 font-normal">Step:</span>
-                    <span className="text-indigo-300 font-bold max-w-[150px] truncate">{selectedNode.title}</span>
-                  </span>
-                ) : (
-                  <span>Open Dossier & Inspector</span>
-                )}
-              </span>
+              {mobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           )}
         </div>
+      </header>
 
-        {/* Right: Master Document Kit & Step Inspector Drawer (Collapsible) */}
-        <div
-          className={clsx(
-            'transition-all duration-300 ease-in-out z-30 h-full shrink-0',
-            isSidebarOpen
-              ? 'w-full sm:w-[380px] lg:w-[400px] xl:w-[440px] opacity-100'
-              : 'w-0 opacity-0 overflow-hidden pointer-events-none hidden lg:block',
-            mobileDrawerOpen && 'fixed inset-y-0 right-0 z-40 !w-full sm:!w-[380px] !opacity-100 !block'
-          )}
-        >
-          <DocumentDrawer
-            graphData={graphData}
-            selectedNode={selectedNode}
-            onSelectNode={handleSelectNode}
-            completedNodes={completedNodes}
-            onToggleComplete={handleToggleComplete}
-            onOpenQuestionnaire={() => setIsQuestionnaireOpen(true)}
-            onClose={() => {
-              setIsSidebarOpen(false);
-              setMobileDrawerOpen(false);
-            }}
-          />
-        </div>
-      </main>
+      {/* VIEW 1: HOME PAGE */}
+      {currentView === 'home' ? (
+        <HomePage
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onStartConstruct={handleStartConstruct}
+          onOpenQuestionnaire={() => setIsQuestionnaireOpen(true)}
+          onOpenJargonBuster={() => setIsJargonModalOpen(true)}
+          hasActiveRoadmap={hasConstructedRoadmap}
+          onViewActiveRoadmap={() => setCurrentView('roadmap')}
+          loading={loading}
+          scopeFeedback={scopeFeedback}
+          onClearScopeFeedback={() => setScopeFeedback(null)}
+        />
+      ) : (
+        /* VIEW 2: ROADMAP WORKSPACE */
+        <>
+          {/* Sub-Header Bar: Jurisdiction & Provenance (Hidden during print) */}
+          <div className="h-10 shrink-0 bg-slate-950/95 border-b border-slate-800 px-4 flex items-center justify-between gap-2 overflow-x-auto text-xs no-print">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentView('home')}
+                className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-300 font-medium cursor-pointer mr-2"
+              >
+                <span>← Home</span>
+              </button>
+              <div className="flex items-center gap-1 text-slate-300 text-[11px]">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Authority: <strong>{graphData?.jurisdiction?.split('(')[0]?.trim() || questionnaireState.jurisdiction || 'Maharashtra'}</strong></span>
+              </div>
+            </div>
+
+            {/* Provenance & Timeline Status */}
+            <div className="flex items-center gap-3 text-[11px] text-slate-400">
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                Est. ~{graphData?.totalEstimatedDays || 90} Days • ₹{(graphData?.totalEstimatedCostINR || 58500).toLocaleString('en-IN')}
+              </span>
+
+              {/* Provenance Badge */}
+              <div className="flex items-center gap-1.5">
+                <span className={clsx(
+                  "w-2 h-2 rounded-full",
+                  graphData?.provenance === 'live_ai_grounded' ? "bg-emerald-400 animate-pulse" : "bg-indigo-400"
+                )} />
+                <span className="text-slate-300 font-medium">
+                  {graphData?.provenanceLabel || (graphData?.provenance === 'live_ai_grounded' ? 'Live AI-tailored' : 'Statutory UDCPR blueprint')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Workspace Layout (Canvas + Collapsible Right Drawer) */}
+          <main className="flex-1 flex overflow-hidden relative">
+            {/* Left: ReactFlow Interactive DAG Canvas */}
+            <div className="flex-1 min-w-0 h-full relative">
+              <RoadmapCanvas
+                graphData={graphData}
+                onSelectNode={handleSelectNode}
+                selectedNodeId={selectedNode?.id}
+                completedNodes={completedNodes}
+                onToggleComplete={handleToggleComplete}
+              />
+
+              {/* Legal / Statutory Guidance Disclaimer */}
+              <div className="absolute bottom-3 left-4 z-10 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800/80 text-[11px] text-slate-400 shadow-md">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span>Statutory guidance only — verify with your Planning Authority or a licensed architect.</span>
+              </div>
+
+              {/* Floating Reopen Button when Sidebar is Minimized */}
+              {!isSidebarOpen && (
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="absolute right-4 top-14 z-20 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/95 hover:bg-slate-850 text-slate-100 border border-slate-700/80 shadow-2xl backdrop-blur-md transition-all hover:border-indigo-500/60 group cursor-pointer"
+                  title="Open Master Dossier & Step Inspector"
+                >
+                  <PanelRightOpen className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-semibold">
+                    {selectedNode ? (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-slate-400 font-normal">Step:</span>
+                        <span className="text-indigo-300 font-bold max-w-[150px] truncate">{selectedNode.title}</span>
+                      </span>
+                    ) : (
+                      <span>Open Dossier & Inspector</span>
+                    )}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Right: Master Document Kit & Step Inspector Drawer (Collapsible) */}
+            <div
+              className={clsx(
+                'transition-all duration-300 ease-in-out z-30 h-full shrink-0',
+                isSidebarOpen
+                  ? 'w-full sm:w-[380px] lg:w-[400px] xl:w-[440px] opacity-100'
+                  : 'w-0 opacity-0 overflow-hidden pointer-events-none hidden lg:block',
+                mobileDrawerOpen && 'fixed inset-y-0 right-0 z-40 !w-full sm:!w-[380px] !opacity-100 !block'
+              )}
+            >
+              <DocumentDrawer
+                graphData={graphData}
+                selectedNode={selectedNode}
+                onSelectNode={handleSelectNode}
+                completedNodes={completedNodes}
+                onToggleComplete={handleToggleComplete}
+                onOpenQuestionnaire={() => setIsQuestionnaireOpen(true)}
+                onClose={() => {
+                  setIsSidebarOpen(false);
+                  setMobileDrawerOpen(false);
+                }}
+              />
+            </div>
+          </main>
+        </>
+      )}
 
       {/* Plot Questionnaire Intake Modal */}
       <PlotQuestionnaireModal

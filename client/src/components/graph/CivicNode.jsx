@@ -34,10 +34,10 @@ export default function CivicNode({ data, selected }) {
 
   const handleToggleStatus = (e) => {
     e.stopPropagation();
-    if (!onStatusChange) return;
+    if (!onStatusChange || isLocked) return;
     if (isCompleted) {
       onStatusChange(id, 'available');
-    } else {
+    } else if (isAvailable) {
       onStatusChange(id, 'completed');
     }
   };
@@ -180,14 +180,22 @@ export default function CivicNode({ data, selected }) {
         <button
           type="button"
           onClick={handleToggleStatus}
+          disabled={isLocked}
           className={clsx(
-            'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-semibold transition-all shadow-md active:scale-95 focus:outline-none',
+            'inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-semibold transition-all shadow-md',
             isCompleted
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 cursor-pointer active:scale-95'
               : isAvailable
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30'
-              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30 cursor-pointer active:scale-95'
+              : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
           )}
+          title={
+            isCompleted
+              ? 'Undo step completion'
+              : isAvailable
+              ? 'Mark this step completed'
+              : 'Prerequisites must be completed first'
+          }
         >
           {isCompleted ? (
             <>
@@ -201,7 +209,8 @@ export default function CivicNode({ data, selected }) {
             </>
           ) : (
             <>
-              <span>Unlock</span>
+              <Lock className="w-3 h-3" />
+              <span>Locked</span>
             </>
           )}
         </button>
