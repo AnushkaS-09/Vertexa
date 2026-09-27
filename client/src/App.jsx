@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import clsx from 'clsx';
 import {
   Compass,
   Search,
@@ -15,12 +16,55 @@ import {
   FileText,
   MapPin,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  PanelRightClose,
+  PanelRightOpen,
+  Sliders,
+  ShieldCheck,
+  Trees,
+  CheckCircle2
 } from 'lucide-react';
 
 import RoadmapCanvas from './components/graph/RoadmapCanvas';
 import DocumentDrawer from './components/sidebar/DocumentDrawer';
 import JargonBusterModal from './components/common/JargonBusterModal';
+import PlotQuestionnaireModal from './components/intake/PlotQuestionnaireModal';
+import { API_ENDPOINTS } from './config/api';
+
+// Helper to determine the next consecutive step in the workflow sequence
+function getNextConsecutiveStep(currentNodeId, nodes = [], edges = [], completedSet = new Set()) {
+  if (!nodes || nodes.length === 0) return null;
+
+  const currentIndex = nodes.findIndex((n) => n.id === currentNodeId);
+  if (currentIndex === -1) {
+    return nodes.find((n) => !completedSet.has(n.id)) || nodes[0];
+  }
+
+  // 1. First priority: Check direct outgoing children in the DAG edges
+  const directChildrenIds = (edges || [])
+    .filter((e) => e.source === currentNodeId)
+    .map((e) => e.target);
+
+  const uncompletedChildId = directChildrenIds.find((cId) => !completedSet.has(cId));
+  if (uncompletedChildId) {
+    const childNode = nodes.find((n) => n.id === uncompletedChildId);
+    if (childNode) return childNode;
+  }
+
+  // 2. Second priority: Next consecutive node in statutory/topological order
+  for (let i = currentIndex + 1; i < nodes.length; i++) {
+    if (!completedSet.has(nodes[i].id)) {
+      return nodes[i];
+    }
+  }
+
+  // 3. Third priority: Any remaining uncompleted node in the graph
+  const anyRemaining = nodes.find((n) => !completedSet.has(n.id) && n.id !== currentNodeId);
+  if (anyRemaining) return anyRemaining;
+
+  // 4. Final step edge case: keep current step selected, do not advance beyond
+  return nodes[currentIndex];
+}
 
 // Statutory Fallback Seed Data (Maharashtra UDCPR 2020)
 const FALLBACK_SEED_GRAPH = {
@@ -30,6 +74,8 @@ const FALLBACK_SEED_GRAPH = {
   totalEstimatedDays: 90,
   totalEstimatedCostINR: 58500,
   legalReference: "Maharashtra Regional & Town Planning (MRTP) Act 1966 & UDCPR 2020",
+  provenance: "deterministic_curated",
+  provenanceLabel: "Curated statutory blueprint (UDCPR 2020)",
   nodes: [
     {
       id: "node_title",
@@ -215,31 +261,75 @@ const FALLBACK_SEED_GRAPH = {
 const PRESETS = [
   {
     id: 'res-full-pipeline',
-    label: 'Standard Residential Bungalow (G+2)',
+    label: 'Standard Bungalow (G+2)',
     icon: Home,
     query: 'Residential House building permission G+2 Bungalow UDCPR 2020',
-    city: 'Maharashtra'
+    city: 'Pune',
+    questionnaire: {
+      jurisdiction: 'Pune',
+      plotArea: 200,
+      buildingHeight: 8.5,
+      roadWidth: 9.0,
+      treesAffected: 0,
+      heritageZone: false,
+      airportZone: false,
+      ecoSensitiveZone: false,
+      hasHighTensionLine: false
+    }
   },
   {
     id: 'res-hill-station',
-    label: 'Hill Station House (Matheran / Eco-Zone)',
+    label: 'Hill Station Eco-House (Matheran)',
     icon: Mountain,
     query: 'Residential Bungalow construction in Matheran Eco-Sensitive Zone',
-    city: 'Matheran'
+    city: 'Matheran',
+    questionnaire: {
+      jurisdiction: 'Matheran',
+      plotArea: 350,
+      buildingHeight: 6.5,
+      roadWidth: 6.0,
+      treesAffected: 1,
+      heritageZone: false,
+      airportZone: false,
+      ecoSensitiveZone: true,
+      hasHighTensionLine: false
+    }
   },
   {
-    id: 'res-predcr-iod',
-    label: 'PreDCR CAD & Architectural Scrutiny',
+    id: 'res-highrise',
+    label: 'High-Rise Residential (>15m)',
     icon: Building2,
-    query: 'PreDCR CAD scrutiny AutoDCR plan approval and IOD for residential building',
-    city: 'Pune'
+    query: 'Residential Building with CFO Fire NOC and AAI height clearance',
+    city: 'Mumbai',
+    questionnaire: {
+      jurisdiction: 'Mumbai',
+      plotArea: 600,
+      buildingHeight: 18.0,
+      roadWidth: 12.0,
+      treesAffected: 0,
+      heritageZone: false,
+      airportZone: true,
+      ecoSensitiveZone: false,
+      hasHighTensionLine: false
+    }
   },
   {
-    id: 'res-plinth-oc',
-    label: 'Plinth to Occupancy Certificate (OC)',
-    icon: FileCheck,
-    query: 'Plinth level inspection superstructure CC and final Occupancy Certificate OC',
-    city: 'Mumbai'
+    id: 'res-heritage-trees',
+    label: 'Heritage Zone & Trees',
+    icon: Trees,
+    query: 'Residential house construction near heritage monument with tree felling permission',
+    city: 'Pune',
+    questionnaire: {
+      jurisdiction: 'Pune',
+      plotArea: 300,
+      buildingHeight: 9.0,
+      roadWidth: 9.0,
+      treesAffected: 3,
+      heritageZone: true,
+      airportZone: false,
+      ecoSensitiveZone: false,
+      hasHighTensionLine: false
+    }
   }
 ];
 
@@ -248,22 +338,89 @@ export default function App() {
   const [selectedCity, setSelectedCity] = useState('Maharashtra');
   const [graphData, setGraphData] = useState(FALLBACK_SEED_GRAPH);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [completedNodes, setCompletedNodes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vertexa_completed_nodes');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const [questionnaireState, setQuestionnaireState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vertexa_plot_questionnaire');
+      return saved ? JSON.parse(saved) : {
+        jurisdiction: 'Pune',
+        plotArea: 200,
+        buildingHeight: 8.5,
+        roadWidth: 9.0,
+        treesAffected: 0,
+        heritageZone: false,
+        airportZone: false,
+        ecoSensitiveZone: false,
+        hasHighTensionLine: false
+      };
+    } catch {
+      return {
+        jurisdiction: 'Pune',
+        plotArea: 200,
+        buildingHeight: 8.5,
+        roadWidth: 9.0,
+        treesAffected: 0,
+        heritageZone: false,
+        airportZone: false,
+        ecoSensitiveZone: false,
+        hasHighTensionLine: false
+      };
+    }
+  });
+
   const [loading, setLoading] = useState(false);
   const [isJargonModalOpen, setIsJargonModalOpen] = useState(false);
+  const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Sync completedNodes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('vertexa_completed_nodes', JSON.stringify(Array.from(completedNodes)));
+    } catch (e) {
+      console.warn('Failed to persist completed nodes to localStorage:', e);
+    }
+  }, [completedNodes]);
+
+  // Sync questionnaire state to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('vertexa_plot_questionnaire', JSON.stringify(questionnaireState));
+    } catch (e) {
+      console.warn('Failed to persist questionnaire state to localStorage:', e);
+    }
+  }, [questionnaireState]);
 
   // Fetch roadmap from backend API
-  const fetchRoadmap = useCallback(async (query, city) => {
+  const fetchRoadmap = useCallback(async (query, city, customQuestionnaire = null) => {
     setLoading(true);
     try {
+      const payload = {
+        query: query || '',
+        city: city || 'Maharashtra',
+        questionnaire: customQuestionnaire || questionnaireState
+      };
+
       const response = await axios.post(
-        'http://localhost:5000/api/navigate',
-        { query, city },
-        { timeout: 15000 }
+        API_ENDPOINTS.navigate,
+        payload,
+        { timeout: 12000 }
       );
+
       if (response.data && response.data.nodes && response.data.nodes.length > 0) {
         setGraphData(response.data);
-        setSelectedNode(null);
+        // Select first step if none selected
+        if (response.data.nodes.length > 0) {
+          setSelectedNode(response.data.nodes[0]);
+        }
       } else {
         setGraphData(FALLBACK_SEED_GRAPH);
       }
@@ -273,12 +430,12 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [questionnaireState]);
 
   // Initial load
   useEffect(() => {
-    fetchRoadmap('Residential house building permission', 'Maharashtra');
-  }, [fetchRoadmap]);
+    fetchRoadmap('Residential house building permission', questionnaireState.jurisdiction || 'Pune', questionnaireState);
+  }, []); // Run once on mount
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -289,13 +446,49 @@ export default function App() {
   const handlePresetSelect = (preset) => {
     setSearchQuery(preset.query);
     setSelectedCity(preset.city);
-    fetchRoadmap(preset.query, preset.city);
+    if (preset.questionnaire) {
+      setQuestionnaireState(preset.questionnaire);
+      fetchRoadmap(preset.query, preset.city, preset.questionnaire);
+    } else {
+      fetchRoadmap(preset.query, preset.city);
+    }
+  };
+
+  const handleQuestionnaireSubmit = (formData) => {
+    setQuestionnaireState(formData);
+    setSelectedCity(formData.jurisdiction);
+    setIsQuestionnaireOpen(false);
+    fetchRoadmap(`Residential building in ${formData.jurisdiction}`, formData.jurisdiction, formData);
   };
 
   const handleSelectNode = useCallback((nodeData) => {
     setSelectedNode(nodeData);
     setMobileDrawerOpen(true);
+    setIsSidebarOpen(true);
   }, []);
+
+  // Central toggle completion logic: marks complete AND advances active step to next consecutive step
+  const handleToggleComplete = useCallback((nodeId, explicitStatus) => {
+    setCompletedNodes((prev) => {
+      const next = new Set(prev);
+      const willComplete = explicitStatus ? explicitStatus === 'completed' : !prev.has(nodeId);
+
+      if (willComplete) {
+        next.add(nodeId);
+
+        // Automatically advance to the next consecutive step in the workflow sequence
+        if (graphData?.nodes && graphData.nodes.length > 0) {
+          const nextStep = getNextConsecutiveStep(nodeId, graphData.nodes, graphData.edges, next);
+          if (nextStep) {
+            setSelectedNode(nextStep);
+          }
+        }
+      } else {
+        next.delete(nodeId);
+      }
+      return next;
+    });
+  }, [graphData]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
@@ -319,7 +512,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Center: Search & City Input Form */}
+        {/* Center: Search Form */}
         <form
           onSubmit={handleSearchSubmit}
           className="hidden md:flex items-center gap-2 flex-1 max-w-xl mx-4"
@@ -330,7 +523,7 @@ export default function App() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search residential project (e.g., G+2 Bungalow in Pune, Matheran Eco-House, Plinth to OC)..."
+              placeholder="Search custom requirement (e.g. Pune G+2 Bungalow, Matheran Eco-Zone, High-Rise)..."
               className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -338,7 +531,7 @@ export default function App() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
@@ -354,12 +547,24 @@ export default function App() {
           </button>
         </form>
 
-        {/* Right Actions: Jargon Buster & Mobile Drawer Toggle */}
+        {/* Right Actions: Plot Questionnaire, Jargon Buster & Mobile Drawer Toggle */}
         <div className="flex items-center gap-2">
+          {/* Plot Questionnaire Intake Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsQuestionnaireOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-800/80 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+            title="Configure plot parameters to calculate applicable NOCs"
+          >
+            <Sliders className="w-4 h-4 text-indigo-400" />
+            <span className="hidden sm:inline">Plot Questionnaire</span>
+          </button>
+
+          {/* Jargon Buster */}
           <button
             type="button"
             onClick={() => setIsJargonModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer"
             title="Open Civic Jargon Buster glossary"
           >
             <BookOpen className="w-4 h-4 text-indigo-400" />
@@ -370,7 +575,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setMobileDrawerOpen((prev) => !prev)}
-            className="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700"
+            className="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 cursor-pointer"
             title="Toggle Document Drawer"
           >
             {mobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -378,11 +583,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* Preset Pills Bar (Hidden during print) */}
+      {/* Preset Pills & Provenance Bar (Hidden during print) */}
       <div className="h-10 shrink-0 bg-slate-950/90 border-b border-slate-800 px-4 flex items-center justify-between gap-2 overflow-x-auto text-xs no-print">
         <div className="flex items-center gap-2">
           <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider shrink-0">
-            Residential Scenarios:
+            Presets:
           </span>
           {PRESETS.map((preset) => {
             const Icon = preset.icon;
@@ -391,7 +596,7 @@ export default function App() {
                 key={preset.id}
                 type="button"
                 onClick={() => handlePresetSelect(preset)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-medium transition-colors shrink-0"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-medium transition-colors shrink-0 cursor-pointer"
               >
                 <Icon className="w-3 h-3 text-indigo-400" />
                 {preset.label}
@@ -400,13 +605,27 @@ export default function App() {
           })}
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400">
-          <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Jurisdiction: <strong>{graphData?.jurisdiction?.split('(')[0] || 'Maharashtra ULBs'}</strong></span>
+        {/* Provenance & Jurisdiction Status */}
+        <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-400">
+          {/* Provenance Badge */}
+          <div className="flex items-center gap-1.5">
+            <span className={clsx(
+              "w-2 h-2 rounded-full",
+              graphData?.provenance === 'live_ai_grounded' ? "bg-emerald-400 animate-pulse" : "bg-indigo-400"
+            )} />
+            <span className="text-slate-300 font-medium">
+              {graphData?.provenanceLabel || (graphData?.provenance === 'live_ai_grounded' ? 'Live AI-tailored' : 'Statutory UDCPR blueprint')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Authority: <strong>{graphData?.jurisdiction?.split('(')[0]?.trim() || questionnaireState.jurisdiction || 'Maharashtra'}</strong></span>
+          </div>
         </div>
       </div>
 
-      {/* Main Workspace Layout (Canvas + Full-Width Responsive Drawer) */}
+      {/* Main Workspace Layout (Canvas + Collapsible Right Drawer) */}
       <main className="flex-1 flex overflow-hidden relative">
         {/* Left: ReactFlow Interactive DAG Canvas */}
         <div className="flex-1 min-w-0 h-full relative">
@@ -414,24 +633,72 @@ export default function App() {
             graphData={graphData}
             onSelectNode={handleSelectNode}
             selectedNodeId={selectedNode?.id}
+            completedNodes={completedNodes}
+            onToggleComplete={handleToggleComplete}
           />
+
+          {/* Legal / Statutory Guidance Disclaimer */}
+          <div className="absolute bottom-3 left-4 z-10 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800/80 text-[11px] text-slate-400 shadow-md">
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <span>Statutory guidance only — verify with your Planning Authority or a licensed architect.</span>
+          </div>
+
+          {/* Floating Reopen Button when Sidebar is Minimized */}
+          {!isSidebarOpen && (
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute right-4 top-14 z-20 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/95 hover:bg-slate-850 text-slate-100 border border-slate-700/80 shadow-2xl backdrop-blur-md transition-all hover:border-indigo-500/60 group cursor-pointer"
+              title="Open Master Dossier & Step Inspector"
+            >
+              <PanelRightOpen className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-semibold">
+                {selectedNode ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-400 font-normal">Step:</span>
+                    <span className="text-indigo-300 font-bold max-w-[150px] truncate">{selectedNode.title}</span>
+                  </span>
+                ) : (
+                  <span>Open Dossier & Inspector</span>
+                )}
+              </span>
+            </button>
+          )}
         </div>
 
-        {/* Right: Master Document Kit & Step Inspector Drawer */}
+        {/* Right: Master Document Kit & Step Inspector Drawer (Collapsible) */}
         <div
-          className={`
-            lg:static absolute inset-y-0 right-0 z-30 transition-transform duration-300 ease-in-out
-            ${mobileDrawerOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-            w-full sm:w-[380px] lg:w-[380px] xl:w-[420px] shrink-0 h-full
-          `}
+          className={clsx(
+            'transition-all duration-300 ease-in-out z-30 h-full shrink-0',
+            isSidebarOpen
+              ? 'w-full sm:w-[380px] lg:w-[400px] xl:w-[440px] opacity-100'
+              : 'w-0 opacity-0 overflow-hidden pointer-events-none hidden lg:block',
+            mobileDrawerOpen && 'fixed inset-y-0 right-0 z-40 !w-full sm:!w-[380px] !opacity-100 !block'
+          )}
         >
           <DocumentDrawer
             graphData={graphData}
             selectedNode={selectedNode}
             onSelectNode={handleSelectNode}
+            completedNodes={completedNodes}
+            onToggleComplete={handleToggleComplete}
+            onOpenQuestionnaire={() => setIsQuestionnaireOpen(true)}
+            onClose={() => {
+              setIsSidebarOpen(false);
+              setMobileDrawerOpen(false);
+            }}
           />
         </div>
       </main>
+
+      {/* Plot Questionnaire Intake Modal */}
+      <PlotQuestionnaireModal
+        isOpen={isQuestionnaireOpen}
+        onClose={() => setIsQuestionnaireOpen(false)}
+        initialValues={questionnaireState}
+        onSubmitQuestionnaire={handleQuestionnaireSubmit}
+        loading={loading}
+      />
 
       {/* Jargon Buster Glossary Modal */}
       <JargonBusterModal

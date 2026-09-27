@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import clsx from 'clsx';
+import { API_ENDPOINTS } from '../../config/api';
 
 // Core Statutory Knowledge Base across domains
 const STATIC_JARGON_DICTIONARY = [
@@ -197,12 +198,12 @@ export default function JargonBusterModal({ isOpen, onClose, graphData }) {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/explain-term',
+        API_ENDPOINTS.explainTerm,
         {
           term: searchTerm.trim(),
           context: `${graphData?.taskTitle || ''} (${graphData?.jurisdiction || ''})`
         },
-        { timeout: 10000 }
+        { timeout: 8000 }
       );
 
       if (response.data && response.data.term) {
