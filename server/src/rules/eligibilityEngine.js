@@ -126,7 +126,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 10,
     cost: 5000,
-    statutoryRule: "UDCPR 2020, Reg 2.2.5(d)",
+    statutoryRule: "UDCPR 2020, Reg 2.2.11 & Reg 9.22 (Hydraulic & Drainage Clearance)",
     forms: [
       "Sanction of Water Supply Connection Form",
       "Stormwater Invert Level Layout Plan"
@@ -215,7 +215,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 14,
     cost: 12000,
-    statutoryRule: "UDCPR 2020, Chapter 6 & Maharashtra Fire Prevention and Life Safety Measures Act 2006",
+    statutoryRule: "UDCPR 2020, Chapter 9 & Chapter 6 & Maharashtra Fire Prevention and Life Safety Measures Act 2006",
     forms: [
       "Fire Scrutiny Checklist",
       "Fire Hydrant & 6m All-Round Driveway Access Plan"
@@ -232,7 +232,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 30,
     cost: 5000,
-    statutoryRule: "Environment (Protection) Act 1986 & UDCPR 2020 Reg 3.1.1",
+    statutoryRule: "Environment (Protection) Act 1986 & MoEFCC ESZ Notifications (UDCPR Reg 1.1 Special Provisions)",
     forms: [
       "Form-1 ESZ Environmental Impact Statement",
       "NOC from Local Eco-Sensitive Monitoring Committee"
@@ -249,7 +249,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 25,
     cost: 3500,
-    statutoryRule: "UDCPR 2020, Chapter 11 (Heritage Conservation)",
+    statutoryRule: "UDCPR 2020, Regulation 14.5 & Reg 2.2.11 (Heritage Conservation)",
     forms: [
       "Heritage Precinct Architectural Elevation Study",
       "Proximity Certificate to Grade I/II/III Listed Structures"
@@ -266,7 +266,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 20,
     cost: 2000,
-    statutoryRule: "Ministry of Civil Aviation (GSR 751(E)) & UDCPR 2020 Reg 2.2.5(c)",
+    statutoryRule: "Ministry of Civil Aviation (GSR 751(E)) & UDCPR 2020 Reg 2.2.11 (Airport Clearance)",
     forms: [
       "NOCAS Online Application (WGS-84 Coordinates & Top-of-Structure AMSL Elevation)",
       "Site Elevation Certificate by Registered Surveyor"
@@ -285,7 +285,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 15,
     cost: 5000,
-    statutoryRule: "UDCPR 2020, Reg 4.2 & Table 6.1",
+    statutoryRule: "UDCPR 2020, Chapter 8 (Tables 8B & 8C - Off-Street Parking Standards)",
     forms: [
       "Traffic Ingress/Egress Circulation Plan",
       "Off-Street Commercial Parking & Loading/Unloading Bay Layout"
@@ -302,7 +302,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 12,
     cost: 2500,
-    statutoryRule: "UDCPR 2020 Chapter 4 (Institutional Norms)",
+    statutoryRule: "UDCPR 2020 Chapter 4 & Reg 9.17 (Barrier-Free Accessibility)",
     forms: [
       "Barrier-Free Ramp & Toilet Compliance Details",
       "Institutional Use Undertaking"
@@ -319,7 +319,7 @@ const CANONICAL_NODES = {
     type: "clearance",
     estimatedDays: 15,
     cost: 5000,
-    statutoryRule: "Maharashtra Tourism Policy & Municipal Health / UDCPR 2020 Reg 4.10",
+    statutoryRule: "Maharashtra Tourism Policy & Municipal Health / UDCPR 2020 Chapter 4",
     forms: [
       "Tourism Registration / Health Trade Intent Application",
       "Solid Waste Management Scheme"
@@ -452,8 +452,8 @@ function evaluateEligibility(questionnaire = {}) {
     id: 'base_hydraulic_sanction',
     name: 'Hydraulic & Stormwater Drainage Sanction',
     status: 'APPLIES',
-    reason: `Required under UDCPR 2020 Reg 2.2.5(d) for ${typologyLabel} development to connect internal sewage & stormwater to municipal mains.`,
-    statutoryRef: 'UDCPR 2020 Reg 2.2.5(d)',
+    reason: `Required under UDCPR 2020 Reg 2.2.11 & Reg 9.22 for ${typologyLabel} development to connect internal sewage & stormwater to municipal mains.`,
+    statutoryRef: 'UDCPR 2020 Reg 2.2.11 & Reg 9.22',
     nodeKey: 'hydraulic_noc'
   });
 
@@ -515,8 +515,8 @@ function evaluateEligibility(questionnaire = {}) {
         id: 'rule_fire_noc',
         name: 'Chief Fire Officer (CFO) High-Rise Fire Safety Clearance (NOC)',
         status: 'APPLIES',
-        reason: `Proposed residential building height (${parsedHeight}m) meets or exceeds the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a). Chief Fire Officer appraisal is mandatory.`,
-        statutoryRef: 'UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a)',
+        reason: `Proposed residential building height (${parsedHeight}m) meets or exceeds the 15.0m high-rise threshold under Maharashtra Fire Prevention Act 2006 & UDCPR Reg 2.2.11 / Chapter 9. Chief Fire Officer appraisal is mandatory.`,
+        statutoryRef: 'Maharashtra Fire Prevention Act 2006 & UDCPR Reg 2.2.11 / Chapter 9',
         nodeKey: 'fire_noc'
       });
     } else {
@@ -524,8 +524,8 @@ function evaluateEligibility(questionnaire = {}) {
         id: 'rule_fire_noc',
         name: 'Chief Fire Officer (CFO) High-Rise Fire Safety Clearance',
         status: 'EXEMPT',
-        reason: `Proposed building height (${parsedHeight}m) is below the 15.0m high-rise threshold for residential houses under UDCPR 2020 Reg 1.3(60) & Reg 2.2.5(a). Standard fire setbacks are self-certified by architect on submission drawings.`,
-        statutoryRef: 'UDCPR 2020 Reg 1.3(60)'
+        reason: `Proposed building height (${parsedHeight}m) is below the 15.0m high-rise threshold for residential houses under Maharashtra Fire Prevention Act 2006 & UDCPR Reg 2.2.11 / Chapter 9. Standard fire setbacks are self-certified by architect on submission drawings.`,
+        statutoryRef: 'Maharashtra Fire Prevention Act 2006 & UDCPR Reg 2.2.11'
       });
     }
   } else {
@@ -535,8 +535,8 @@ function evaluateEligibility(questionnaire = {}) {
         id: 'rule_fire_noc',
         name: 'Chief Fire Officer (CFO) Fire Safety Clearance (NOC)',
         status: 'APPLIES',
-        reason: `Proposed ${typologyLabel} building height (${parsedHeight}m) meets or exceeds 15.0m. Full Chief Fire Officer appraisal and life safety review is mandatory under UDCPR Chapter 6 & Maharashtra Fire Prevention Act 2006.`,
-        statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006',
+        reason: `Proposed ${typologyLabel} building height (${parsedHeight}m) meets or exceeds 15.0m. Full Chief Fire Officer appraisal and life safety review is mandatory under UDCPR Chapter 9 & Maharashtra Fire Prevention Act 2006.`,
+        statutoryRef: 'UDCPR 2020 Chapter 9 & Fire Act 2006',
         nodeKey: 'fire_noc'
       });
     } else {
@@ -544,8 +544,8 @@ function evaluateEligibility(questionnaire = {}) {
         id: 'rule_fire_noc',
         name: 'Chief Fire Officer (CFO) Fire Safety Clearance',
         status: 'VERIFICATION_REQUIRED',
-        reason: `Low-rise ${typologyLabel} building (<15m): CFO fire clearance depends on occupant load, built-up area, and hazardous/mercantile classification under UDCPR 2020 Chapter 6. Subject to municipal fire department appraisal.`,
-        statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006'
+        reason: `Low-rise ${typologyLabel} building (<15m): CFO fire clearance depends on occupant load, built-up area, and hazardous/mercantile classification under UDCPR 2020 Chapter 9 & NBC Part 4. Subject to municipal fire department appraisal.`,
+        statutoryRef: 'UDCPR 2020 Chapter 9 & Fire Act 2006'
       });
     }
   }
@@ -560,8 +560,8 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_eco_noc',
       name: 'Eco-Sensitive Zone (ESZ) / Hill Station Authority Clearance',
       status: 'APPLIES',
-      reason: `Plot falls within Eco-Sensitive Zone (${jurisdiction}) under Environment (Protection) Act 1986 & UDCPR Reg 14.11.1. High-Level Monitoring Committee approval required.`,
-      statutoryRef: 'Environment (Protection) Act 1986 & UDCPR Reg 14.11.1',
+      reason: `Plot falls within Eco-Sensitive Zone (${jurisdiction}) under Environment (Protection) Act 1986 & MoEFCC Notifications (UDCPR Reg 1.1 Special ESZ Provisions). High-Level Monitoring Committee approval required.`,
+      statutoryRef: 'Environment (Protection) Act 1986 & MoEFCC Notifications',
       nodeKey: 'eco_noc'
     });
   } else {
@@ -580,8 +580,8 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_heritage_noc',
       name: 'Heritage Conservation Committee Clearance (MHCC / Local Heritage Committee)',
       status: 'APPLIES',
-      reason: 'Plot is in a designated Heritage Precinct or near protected archaeological monuments under UDCPR 2020 Reg 11.2.',
-      statutoryRef: 'UDCPR 2020 Reg 11.2',
+      reason: 'Plot is in a designated Heritage Precinct or near protected archaeological monuments under UDCPR 2020 Reg 14.5 & Reg 2.2.11.',
+      statutoryRef: 'UDCPR 2020 Reg 14.5 & Reg 2.2.11',
       nodeKey: 'heritage_noc'
     });
   } else {
@@ -590,7 +590,7 @@ function evaluateEligibility(questionnaire = {}) {
       name: 'Heritage Conservation / Monument Buffer Status',
       status: 'VERIFICATION_REQUIRED',
       reason: 'Heritage status requires site-level verification: verify that plot does not fall within 100m/200m buffer of ASI/State monuments (AMASR Act 1958) or local municipal Grade I/II/III lists.',
-      statutoryRef: 'AMASR Act 1958 & UDCPR Reg 11.2'
+      statutoryRef: 'AMASR Act 1958 & UDCPR Reg 14.5'
     });
   }
 
@@ -600,8 +600,8 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_airport_noc',
       name: 'Airport Authority of India (AAI NOCAS) Height Clearance',
       status: 'APPLIES',
-      reason: 'Plot is reported within civil aviation funnel or radar obstacle limitation surface (OLS) under GSR 751(E) & UDCPR Reg 2.2.5(c).',
-      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.5(c)',
+      reason: 'Plot is reported within civil aviation funnel or radar obstacle limitation surface (OLS) under GSR 751(E) & UDCPR Reg 2.2.11.',
+      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.11',
       nodeKey: 'airport_noc'
     });
   } else {
@@ -610,7 +610,7 @@ function evaluateEligibility(questionnaire = {}) {
       name: 'Airport Funnel & Radar Height Clearance (AAI NOCAS)',
       status: 'VERIFICATION_REQUIRED',
       reason: 'Airport clearance requires site-level elevation verification against Colour Coded Zoning Map (CCZM) using exact WGS-84 coordinates and AMSL structure elevation.',
-      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.5(c)'
+      statutoryRef: 'Ministry of Civil Aviation (GSR 751(E)) & UDCPR Reg 2.2.11'
     });
   }
 
@@ -620,8 +620,8 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_ht_setback',
       name: 'High-Tension (HT) Power Line Clearance & MSEDCL/MSETCL NOC',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'High-Tension electrical line traverses or abuts plot. Statutory horizontal and vertical safety clearances must be certified on-site under UDCPR 2020 Reg 3.4 & Indian Electricity Rules 1956.',
-      statutoryRef: 'UDCPR 2020 Reg 3.4 & Indian Electricity Rules 1956'
+      reason: 'High-Tension electrical line traverses or abuts plot. Statutory horizontal and vertical safety clearances must be certified on-site under UDCPR 2020 Reg 3.1.2 & Indian Electricity Rules 1956.',
+      statutoryRef: 'UDCPR 2020 Reg 3.1.2 & Indian Electricity Rules 1956'
     });
   }
 
@@ -632,8 +632,8 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_road_width_access',
       name: 'Sub-6 Meter Access Road Setback Surrender',
       status: 'VERIFICATION_REQUIRED',
-      reason: `Existing road width (${parsedRoad}m) is narrower than standard UDCPR access. Road widening setback surrender may be demanded by Planning Authority before development sanction under UDCPR 2020 Reg 3.3.1.`,
-      statutoryRef: 'UDCPR 2020 Reg 3.3.1'
+      reason: `Existing road width (${parsedRoad}m) is narrower than standard UDCPR access. Road widening setback surrender may be demanded by Planning Authority before development sanction under UDCPR 2020 Reg 3.2 & Reg 3.3.1.`,
+      statutoryRef: 'UDCPR 2020 Reg 3.2 & Reg 3.3.1'
     });
   }
 
@@ -643,16 +643,16 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_comm_traffic_parking',
       name: 'Commercial Traffic Impact & Off-Street Parking Scrutiny',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'Commercial mercantile projects require dedicated customer parking bays and loading/unloading berths under UDCPR Table 6.1.',
-      statutoryRef: 'UDCPR 2020 Table 6.1'
+      reason: 'Commercial mercantile projects require dedicated customer parking bays and loading/unloading berths under UDCPR 2020 Chapter 8 (Tables 8B & 8C).',
+      statutoryRef: 'UDCPR 2020 Chapter 8 (Tables 8B & 8C)'
     });
   } else if (constructionType === 'INSTITUTIONAL') {
     uncertain.push({
       id: 'rule_inst_accessibility',
       name: 'Barrier-Free Accessibility & Institutional Open Space Verification',
       status: 'VERIFICATION_REQUIRED',
-      reason: 'Schools, colleges, and healthcare facilities require barrier-free ramps, emergency fire access driveways, and institutional open space reservations under UDCPR Chapter 4.',
-      statutoryRef: 'UDCPR 2020 Chapter 4'
+      reason: 'Schools, colleges, and healthcare facilities require barrier-free ramps, emergency fire access driveways, and institutional open space reservations under UDCPR Chapter 4 & Reg 9.17.',
+      statutoryRef: 'UDCPR 2020 Chapter 4 & Reg 9.17'
     });
   } else if (constructionType === 'HOSPITALITY') {
     uncertain.push({

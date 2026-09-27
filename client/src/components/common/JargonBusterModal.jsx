@@ -413,8 +413,7 @@ export default function JargonBusterModal({ isOpen, onClose, graphData }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3.5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
-          <span>Covers UDCPR 2020, FSSAI, Shops Act, MRTP 1966 & Indian Municipal Bylaws.</span>
+        <div className="p-3.5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-end text-xs text-slate-400">
           <button
             type="button"
             onClick={onClose}

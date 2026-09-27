@@ -25,10 +25,19 @@ function postJson(url, data) {
 }
 
 async function run() {
-  const res = await postJson('http://localhost:5000/api/explain-term', {
+  console.log('Testing "abc":');
+  const res1 = await postJson('http://localhost:5000/api/explain-term', {
+    term: 'abc',
+    context: 'Maharashtra UDCPR 2020'
+  });
+  console.log('Result for "abc":', JSON.stringify(res1.data, null, 2));
+
+  console.log('\nTesting "TDR":');
+  const res2 = await postJson('http://localhost:5000/api/explain-term', {
     term: 'TDR',
     context: 'Maharashtra UDCPR 2020'
   });
-  console.log('Result from /api/explain-term:', res);
+  console.log('Result for "TDR":', JSON.stringify(res2.data, null, 2));
 }
 run().catch(console.error);
+

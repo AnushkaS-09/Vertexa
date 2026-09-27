@@ -39,11 +39,44 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     geminiConfigured: !!(GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here'),
-    model: 'gemini-3.8-flash',
+    model: 'gemini-3.5-flash-lite',
     domain: 'Building & Construction Permitting in Maharashtra (UDCPR 2020 & MRTP Act 1966)',
     supportedTypologies: ['RESIDENTIAL', 'COMMERCIAL', 'INSTITUTIONAL', 'HOSPITALITY', 'MIXED_USE', 'INDUSTRIAL', 'OTHER']
   });
 });
+
+// Helper for resilient Gemini calls with multi-model fallback & extended timeout
+async function generateWithGemini(ai, prompt, systemInstruction, timeoutMs = 18000) {
+  const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.5-flash'];
+  let lastErr = null;
+
+  for (const model of models) {
+    try {
+      const aiPromise = ai.models.generateContent({
+        model: model,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          systemInstruction: systemInstruction
+        }
+      });
+      aiPromise.catch(() => {});
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini ${model} timed out after ${timeoutMs}ms`)), timeoutMs)
+      );
+
+      const response = await Promise.race([aiPromise, timeoutPromise]);
+      if (response && response.text) {
+        return { text: response.text, modelUsed: model };
+      }
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[Gemini Attempt] Model ${model} failed (${err.message || err}). Trying fallback...`);
+    }
+  }
+  throw lastErr || new Error('All Gemini model candidates failed');
+}
 
 // 2. Available Pre-indexed Tasks
 app.get('/api/tasks', (req, res) => {
@@ -132,6 +165,13 @@ Project Parameters & Eligibility Constraints:
 - Clearances Requiring Verification: ${eligibility.uncertain.map(u => u.name).join(', ')}
 - Exempt Clearances: ${eligibility.exempt.map(e => e.name).join(', ')}
 
+Canonical Node IDs to include for standard pipeline stages:
+- Land & Title: node_title, node_mojani, node_tax_noc
+- Scrutiny & Sanction: node_autodcr, node_site_inspection, node_iod
+- Mandatory Clearance: node_hydraulic_noc (UDCPR Reg 2.2.11 & Reg 9.22 Hydraulic & Stormwater Drainage)
+- Construction & Inspection: node_cc, node_plinth_check, node_oc
+- Typology/Environmental NOCs (when applicable): node_tree_noc, node_fire_noc, node_eco_noc, node_heritage_noc, node_airport_noc, node_comm_traffic_parking, node_inst_accessibility, node_hosp_env_tourism, node_mixed_segregation, node_ind_mpcb_dish
+
 Return valid JSON with exact schema:
 {
   "taskId": "${parsedQuestionnaire.constructionType.toLowerCase()}-building-permission-mh-custom",
@@ -162,23 +202,13 @@ Return valid JSON with exact schema:
   ]
 }`;
 
-      // Set explicit timeout on Gemini call
-      const aiPromise = ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          systemInstruction: 'You are an authoritative town planning workflow generator for construction projects under Maharashtra UDCPR 2020. You must respect the deterministic eligibility outputs and never invent unverified statutory approvals.'
-        }
-      });
-      aiPromise.catch(() => {}); // prevent unhandledRejection if timeout triggers first
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Gemini API call timed out after 10000ms')), 10000)
+      const aiResult = await generateWithGemini(
+        ai,
+        prompt,
+        'You are an authoritative town planning workflow generator for construction projects under Maharashtra UDCPR 2020. You must respect the deterministic eligibility outputs and never invent unverified statutory approvals.'
       );
 
-      const response = await Promise.race([aiPromise, timeoutPromise]);
-      const parsed = JSON.parse(response.text);
+      const parsed = JSON.parse(aiResult.text);
 
       // Strict schema validation before sending to frontend
       const validation = validateGraph(parsed);
@@ -274,21 +304,13 @@ Return a valid JSON object matching:
   "statutoryAct": "Relevant legal Act/Regulation (e.g., UDCPR 2020 Reg 2.2, MRTP Act 1966 Sec 45, Maharashtra Tree Act 1975)"
 }`;
 
-      const aiPromise = ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          systemInstruction: 'You are an expert in Maharashtra municipal administrative law, revenue records, and UDCPR 2020 building permissions. Explain statutory terms in clear, plain citizen-friendly English.'
-        }
-      });
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI explanation timed out')), 6000)
+      const aiResult = await generateWithGemini(
+        ai,
+        prompt,
+        'You are an expert in Maharashtra municipal administrative law, revenue records, and UDCPR 2020 building permissions. Explain statutory terms in clear, plain citizen-friendly English.'
       );
 
-      const response = await Promise.race([aiPromise, timeoutPromise]);
-      const parsed = JSON.parse(response.text);
+      const parsed = JSON.parse(aiResult.text);
       return res.status(200).json(parsed);
     } catch (err) {
       console.warn('[Warning] Dynamic Jargon AI explanation failed:', err.message);
@@ -313,6 +335,7 @@ app.use((err, req, res, next) => {
   console.error('[Unhandled Error]:', err.message);
   return res.status(500).json({ error: 'Internal Server Error' });
 });
+
 
 app.listen(PORT, () => {
   console.log(`[Municipal Bureaucracy API] Server running on http://localhost:${PORT}`);

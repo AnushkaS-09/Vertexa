@@ -14,25 +14,80 @@ async function testGeminiModels() {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const modelsToTest = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  console.log('\n--- Querying Available Models from Google GenAI ---');
+  try {
+    const list = await ai.models.list();
+    const available = [];
+    for await (const m of list) {
+      available.push({ name: m.name, displayName: m.displayName });
+      console.log(`- ${m.name} (${m.displayName || 'No display name'})`);
+    }
+  } catch (err) {
+    console.log('Failed to list models:', err.message || err);
+  }
 
-  console.log('\n--- Testing Grounded Search with gemini-3.8-flash ---');
+  const modelsToTest = [
+    'gemini-3.8-flash',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash'
+  ];
+
+  console.log('\n--- Benchmarking Gemini Models ---');
+  const results = [];
+
+  for (const model of modelsToTest) {
+    console.log(`\nTesting model: ${model}...`);
+    const startTime = Date.now();
+    try {
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: 'Return a one-sentence confirmation that you are working.'
+      });
+      const duration = Date.now() - startTime;
+      const text = response.text ? response.text.trim() : '';
+      console.log(`[SUCCESS] ${model} responded in ${duration}ms: "${text.slice(0, 100)}"`);
+      results.push({ model, success: true, duration, response: text });
+    } catch (err) {
+      const duration = Date.now() - startTime;
+      console.log(`[FAILED] ${model} failed after ${duration}ms: ${err.message || err}`);
+      results.push({ model, success: false, duration, error: err.message || String(err) });
+    }
+  }
+
+  console.log('\n=== Summary of Model Verification ===');
+  console.table(results.map(r => ({
+    Model: r.model,
+    Status: r.success ? 'SUCCESS' : 'FAILED',
+    'Latency (ms)': r.duration,
+    Note: r.success ? (r.response ? r.response.slice(0, 40) + '...' : 'OK') : (r.error ? r.error.slice(0, 40) + '...' : 'Error')
+  })));
+
+  // Test selected model with structured JSON generation
+  console.log('\n--- Deep Verification of Selected Model: gemini-3.6-flash ---');
   try {
     const startTime = Date.now();
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: 'What is the official MahaBPAMS portal URL for building permission in Maharashtra? Include official gov.in sources.',
+      model: 'gemini-3.6-flash',
+      contents: 'Explain what MahaBPAMS is in Maharashtra town planning in 1 sentence. Return valid JSON: {"topic": "MahaBPAMS", "summary": "..."}',
       config: {
-        tools: [{ googleSearch: {} }]
+        responseMimeType: 'application/json'
       }
     });
     const duration = Date.now() - startTime;
-    console.log(`[SUCCESS] Search grounding succeeded in ${duration}ms!`);
-    console.log('Response excerpt:', response.text?.slice(0, 300));
-    console.log('Grounding metadata:', JSON.stringify(response.candidates?.[0]?.groundingMetadata || response.groundingMetadata || {}, null, 2));
+    console.log(`[SUCCESS] Structured JSON generation succeeded in ${duration}ms!`);
+    console.log('Response JSON:', response.text.trim());
   } catch (err) {
-    console.log('[FAILED] Search grounding error:', err.message || err);
+    console.log('[FAILED] Deep verification error:', err.message || err);
   }
 }
 
 testGeminiModels().catch(console.error);
+
+
+
