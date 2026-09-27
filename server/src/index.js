@@ -13,6 +13,9 @@ const { evaluateEligibility, assembleDeterministicGraph } = require('./rules/eli
 const { validateGraph } = require('./utils/graphValidator');
 const { validateGovernmentUrl } = require('./utils/urlValidator');
 
+process.on('uncaughtException', (err) => console.error('[UncaughtException]', err));
+process.on('unhandledRejection', (reason) => console.error('[UnhandledRejection]', reason));
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
@@ -151,6 +154,7 @@ Return valid JSON with exact schema:
           systemInstruction: 'You are an authoritative town planning workflow generator specializing strictly in residential house construction and municipal building permits under Maharashtra UDCPR 2020.'
         }
       });
+      aiPromise.catch(() => {}); // prevent unhandledRejection if timeout triggers first
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Gemini API call timed out after 10000ms')), 10000)

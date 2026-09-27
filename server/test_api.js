@@ -127,32 +127,63 @@ async function runTests() {
   assert.strictEqual(matheranEsz.status, 'APPLIES');
   console.log('  ✓ Matheran jurisdiction correctly triggers ESZ Clearance\n');
 
-  // TEST 7: buildingHeight > 15 -> Fire NOC APPLIES
-  console.log('[Test 8] Fire Safety - buildingHeight > 15m -> CFO NOC APPLIES...');
-  const highRiseRes = await postJson('http://localhost:5000/api/eligibility', {
+  // TEST 7: buildingHeight = 14.99m -> Fire NOC EXEMPT (low-rise threshold)
+  console.log('[Test 8] Fire Safety Boundary - buildingHeight = 14.99m -> High-Rise CFO EXEMPT...');
+  const lowRiseBoundaryRes = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Pune',
-    buildingHeight: 18.0
+    buildingHeight: 14.99
   });
-  const fireApplies = highRiseRes.data.applicable.find(n => n.id === 'rule_fire_noc');
-  assert.ok(fireApplies, 'Height > 15m must trigger CFO Fire NOC');
-  assert.strictEqual(fireApplies.status, 'APPLIES');
-  console.log('  ✓ buildingHeight > 15m triggers CFO Fire Safety NOC\n');
+  const fireExempt1499 = lowRiseBoundaryRes.data.exempt.find(n => n.id === 'rule_fire_noc');
+  const fireApplies1499 = lowRiseBoundaryRes.data.applicable.find(n => n.id === 'rule_fire_noc');
+  assert.strictEqual(fireApplies1499, undefined, 'Height 14.99m must NOT trigger High-Rise CFO NOC');
+  assert.ok(fireExempt1499, 'Height 14.99m must be in exempt list for High-Rise CFO clearance');
+  assert.strictEqual(fireExempt1499.status, 'EXEMPT');
+  assert.ok(fireExempt1499.reason.includes('below the 15.0m high-rise threshold'), 'Reason must explain below 15.0m threshold');
+  assert.ok(fireExempt1499.reason.includes('architect'), 'Reason must mention architect self-certification on blueprint');
+  console.log('  ✓ buildingHeight = 14.99m correctly classified as EXEMPT from high-rise CFO NOC\n');
 
-  // TEST 8: buildingHeight <= 15 -> High-Rise CFO NOC EXEMPT while fire-compliance wording remains
-  console.log('[Test 9] Fire Safety - buildingHeight <= 15m -> High-Rise CFO EXEMPT with wording...');
-  const lowRiseRes = await postJson('http://localhost:5000/api/eligibility', {
+  // TEST 8: buildingHeight = 15.00m -> Fire NOC APPLIES (exact high-rise threshold)
+  console.log('[Test 9] Fire Safety Boundary - buildingHeight = 15.00m -> CFO NOC APPLIES...');
+  const exact15Res = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Pune',
-    buildingHeight: 8.5
+    buildingHeight: 15.00
   });
-  const fireExempt = lowRiseRes.data.exempt.find(n => n.id === 'rule_fire_noc');
-  assert.ok(fireExempt, 'Height <= 15m must be in exempt list for High-Rise CFO clearance');
-  assert.strictEqual(fireExempt.status, 'EXEMPT');
-  assert.ok(fireExempt.reason.includes('low-rise threshold'), 'Reason must explain low-rise threshold');
-  assert.ok(fireExempt.reason.includes('architect'), 'Reason must mention architect self-certification on blueprint');
-  console.log('  ✓ buildingHeight <= 15m correctly handles high-rise CFO exemption with fire wording\n');
+  const fireApplies1500 = exact15Res.data.applicable.find(n => n.id === 'rule_fire_noc');
+  const fireExempt1500 = exact15Res.data.exempt.find(n => n.id === 'rule_fire_noc');
+  assert.strictEqual(fireExempt1500, undefined, 'Height 15.00m must NOT have low-rise exemption');
+  assert.ok(fireApplies1500, 'Height 15.00m must trigger CFO Fire NOC under UDCPR Reg 1.3(93)');
+  assert.strictEqual(fireApplies1500.status, 'APPLIES');
+  assert.ok(fireApplies1500.reason.includes('meets or exceeds the 15.0m high-rise threshold'), 'Reason must state meets or exceeds 15.0m');
+  console.log('  ✓ buildingHeight = 15.00m correctly triggers CFO Fire Safety NOC APPLIES\n');
 
-  // TEST 9: treesAffected > 0 -> Tree Authority APPLIES
-  console.log('[Test 10] Tree Authority - treesAffected > 0 -> APPLIES...');
+  // TEST 9: buildingHeight = 15.01m -> Fire NOC APPLIES (> 15.0m)
+  console.log('[Test 10] Fire Safety Boundary - buildingHeight = 15.01m -> CFO NOC APPLIES...');
+  const above15Res = await postJson('http://localhost:5000/api/eligibility', {
+    jurisdiction: 'Pune',
+    buildingHeight: 15.01
+  });
+  const fireApplies1501 = above15Res.data.applicable.find(n => n.id === 'rule_fire_noc');
+  const fireExempt1501 = above15Res.data.exempt.find(n => n.id === 'rule_fire_noc');
+  assert.strictEqual(fireExempt1501, undefined, 'Height 15.01m must NOT have low-rise exemption');
+  assert.ok(fireApplies1501, 'Height 15.01m must trigger CFO Fire NOC');
+  assert.strictEqual(fireApplies1501.status, 'APPLIES');
+  console.log('  ✓ buildingHeight = 15.01m correctly triggers CFO Fire Safety NOC APPLIES\n');
+
+  // TEST 10: R04 & R06 Canonical Terminology Verification
+  console.log('[Test 11] Terminology - R04 & R06 Neutralized Titles...');
+  const terminologyRes = await postJson('http://localhost:5000/api/eligibility', {
+    jurisdiction: 'Pune'
+  });
+  const r04 = terminologyRes.data.applicable.find(n => n.id === 'base_autodcr_scrutiny');
+  const r06 = terminologyRes.data.applicable.find(n => n.id === 'base_iod_sanction');
+  assert.ok(r04, 'R04 must be present in baseline applicable list');
+  assert.strictEqual(r04.name, 'Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)');
+  assert.ok(r06, 'R06 must be present in baseline applicable list');
+  assert.strictEqual(r06.name, 'Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)');
+  console.log('  ✓ R04 and R06 titles match exact Phase 7B specifications\n');
+
+  // TEST 11: treesAffected > 0 -> Tree Authority APPLIES
+  console.log('[Test 12] Tree Authority - treesAffected > 0 -> APPLIES...');
   const treeAppliesRes = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Mumbai',
     treesAffected: 3
@@ -162,8 +193,8 @@ async function runTests() {
   assert.strictEqual(treeApplies.status, 'APPLIES');
   console.log('  ✓ treesAffected > 0 triggers Tree Authority Clearance\n');
 
-  // TEST 10: treesAffected === 0 -> Not triggered by reported facts
-  console.log('[Test 11] Tree Authority - treesAffected === 0 -> EXEMPT with non-inspection wording...');
+  // TEST 12: treesAffected === 0 -> Not triggered by reported facts
+  console.log('[Test 13] Tree Authority - treesAffected === 0 -> EXEMPT with non-inspection wording...');
   const treeZeroRes = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Pune',
     treesAffected: 0
@@ -173,8 +204,8 @@ async function runTests() {
   assert.ok(treeExempt.reason.includes('reported questionnaire facts'), 'Must not claim site was physically inspected');
   console.log('  ✓ treesAffected === 0 uses accurate non-inspection questionnaire wording\n');
 
-  // TEST 11: hasHighTensionLine = true -> VERIFY
-  console.log('[Test 12] HT Power Line - hasHighTensionLine === true -> VERIFICATION_REQUIRED...');
+  // TEST 13: hasHighTensionLine = true -> VERIFY
+  console.log('[Test 14] HT Power Line - hasHighTensionLine === true -> VERIFICATION_REQUIRED...');
   const htRes = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Pune',
     hasHighTensionLine: true
@@ -184,8 +215,8 @@ async function runTests() {
   assert.strictEqual(htVerify.status, 'VERIFICATION_REQUIRED');
   console.log('  ✓ hasHighTensionLine === true correctly classified as VERIFICATION_REQUIRED\n');
 
-  // TEST 12: roadWidth < 6 -> VERIFY
-  console.log('[Test 13] Road Width - roadWidth < 6.0m -> VERIFICATION_REQUIRED...');
+  // TEST 14: roadWidth < 6 -> VERIFY
+  console.log('[Test 15] Road Width - roadWidth < 6.0m -> VERIFICATION_REQUIRED...');
   const roadRes = await postJson('http://localhost:5000/api/eligibility', {
     jurisdiction: 'Pune',
     roadWidth: 4.5
@@ -196,13 +227,49 @@ async function runTests() {
   console.log('  ✓ roadWidth < 6.0m correctly classified as VERIFICATION_REQUIRED\n');
 
   // Security SSRF Check
-  console.log('[Test 14] Security - SSRF Protection...');
+  console.log('[Test 16] Security - SSRF Protection...');
   const ssrfRes = await getJson('http://localhost:5000/api/link-status?url=http://localhost:5000/api/health');
   assert.strictEqual(ssrfRes.status, 403, 'SSRF must return 403 Forbidden');
   console.log('  ✓ SSRF rejection on localhost confirmed\n');
 
+  // TEST 17: Custom Request Navigation Pipeline
+  console.log('[Test 17] Custom Request - "I want to construct a residential G+2 house in Pune"...');
+  const customNavRes = await postJson('http://localhost:5000/api/navigate', {
+    query: 'I want to construct a residential G+2 house in Pune',
+    city: 'Pune',
+    questionnaire: {
+      jurisdiction: 'Pune',
+      plotArea: 200,
+      buildingHeight: 8.5,
+      roadWidth: 9.0,
+      treesAffected: 0,
+      heritageZone: false,
+      airportZone: false,
+      ecoSensitiveZone: false,
+      hasHighTensionLine: false
+    }
+  });
+  assert.strictEqual(customNavRes.status, 200, 'Custom request must return 200 status');
+  assert.ok(customNavRes.data.nodes && customNavRes.data.nodes.length >= 10, 'Must return full permitting pipeline');
+  assert.ok(customNavRes.data.edges && customNavRes.data.edges.length >= 10, 'Must return valid DAG edges');
+  assert.strictEqual(customNavRes.data.nodes.some(n => n.id === 'node_autodcr'), true, 'Must include R04 CAD Scrutiny');
+  assert.strictEqual(customNavRes.data.nodes.some(n => n.id === 'node_iod'), true, 'Must include R06 IOD / Sanction');
+  console.log('  ✓ Custom residential building request successfully generates valid roadmap DAG\n');
+
+  // TEST 18: Water Connection Scope Evaluation
+  console.log('[Test 18] Water Connection Scope - "I want to get a water connection"...');
+  const waterNavRes = await postJson('http://localhost:5000/api/navigate', {
+    query: 'I want to get a water connection',
+    city: 'Maharashtra'
+  });
+  assert.strictEqual(waterNavRes.status, 200, 'Water connection query returns 200 without error');
+  const hydraulicNode = waterNavRes.data.nodes?.find(n => n.id === 'node_hydraulic_noc');
+  assert.ok(hydraulicNode, 'Must contain hydraulic and drainage clearance node within residential pipeline');
+  assert.strictEqual(hydraulicNode.statutoryRule, 'UDCPR 2020, Reg 2.2.5(d)');
+  console.log('  ✓ Water connection query safely served within statutory residential permitting scope\n');
+
   console.log('===========================================================');
-  console.log('🎉 ALL 14 PHASE 4 REGULATORY SAFETY & SECURITY TESTS PASSED!');
+  console.log('🎉 ALL 18 PHASE 8 END-TO-END ACCEPTANCE TESTS PASSED!');
   console.log('===========================================================\n');
 }
 

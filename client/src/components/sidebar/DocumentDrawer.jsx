@@ -463,24 +463,43 @@ export default function DocumentDrawer({
 
                 <button
                   type="button"
-                  onClick={() => onToggleComplete && onToggleComplete(selectedNode.id, isStepCompleted ? 'available' : 'completed')}
+                  onClick={() => {
+                    if (!isStepCompleted && !isStepAvailable) return;
+                    if (onToggleComplete) {
+                      onToggleComplete(selectedNode.id, isStepCompleted ? 'available' : 'completed');
+                    }
+                  }}
+                  disabled={!isStepCompleted && !isStepAvailable}
                   className={clsx(
-                    'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer',
+                    'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-md',
                     isStepCompleted
-                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer'
+                      : isStepAvailable
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 cursor-pointer active:scale-95'
+                      : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60'
                   )}
-                  title={isStepCompleted ? 'Undo step completion' : 'Mark this step completed and advance to next step'}
+                  title={
+                    isStepCompleted
+                      ? 'Undo step completion'
+                      : isStepAvailable
+                      ? 'Mark this step completed and advance to next step'
+                      : 'Prerequisites must be completed first'
+                  }
                 >
                   {isStepCompleted ? (
                     <>
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Undo Done</span>
                     </>
-                  ) : (
+                  ) : isStepAvailable ? (
                     <>
                       <Check className="w-3.5 h-3.5" />
                       <span>Mark as done →</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Prereq Locked</span>
                     </>
                   )}
                 </button>

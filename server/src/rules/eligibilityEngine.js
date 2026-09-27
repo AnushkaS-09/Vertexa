@@ -63,7 +63,7 @@ const CANONICAL_NODES = {
   autodcr: {
     id: "node_autodcr",
     stage: "Stage 2: Architectural Scrutiny & PreDCR",
-    title: "Architect CAD Plan Submission (AutoDCR Scrutiny)",
+    title: "Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)",
     department: "Town Planning Scrutiny Cell (MahaBPAMS)",
     type: "submission",
     estimatedDays: 10,
@@ -99,7 +99,7 @@ const CANONICAL_NODES = {
   iod: {
     id: "node_iod",
     stage: "Stage 2: Architectural Scrutiny & PreDCR",
-    title: "Intimation of Disapproval (IOD) / Conditional Sanction",
+    title: "Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)",
     department: "Executive Engineer / Building Proposal Department",
     type: "conditional_approval",
     estimatedDays: 5,
@@ -215,7 +215,7 @@ const CANONICAL_NODES = {
       "Fire Hydrant & 6m All-Round Driveway Access Plan"
     ],
     officialUrl: "https://mahafireservice.gov.in",
-    plainLanguageSummary: "Mandatory for buildings above 15m height or special residential occupancy ensuring firefighter access, dedicated fire staircases, and wet riser hookups.",
+    plainLanguageSummary: "Mandatory for buildings of 15m height or more (UDCPR Reg 1.3(93)) or special residential occupancy ensuring firefighter access, dedicated fire staircases, and wet riser hookups.",
     isBottleneck: true
   },
   eco_noc: {
@@ -322,7 +322,7 @@ function evaluateEligibility(questionnaire = {}) {
 
   applicable.push({
     id: 'base_autodcr_scrutiny',
-    name: 'Architect CAD & PreDCR Scrutiny (MahaBPAMS)',
+    name: 'Architect CAD Plan Submission & Automated Scrutiny (MahaBPAMS / MCGM AutoDCR)',
     status: 'APPLIES',
     reason: 'Statutory automated verification of FSI, ground coverage, light/ventilation, and setbacks.',
     statutoryRef: 'UDCPR 2020 Reg 2.2.1 & 2.2.4',
@@ -340,7 +340,7 @@ function evaluateEligibility(questionnaire = {}) {
 
   applicable.push({
     id: 'base_iod_sanction',
-    name: 'Intimation of Disapproval (IOD) / Sanction',
+    name: 'Development Sanction / Conditional Sanction (Intimation of Disapproval - IOD in Mumbai)',
     status: 'APPLIES',
     reason: 'Statutory conditional sanction under Section 45 of MRTP Act 1966.',
     statutoryRef: 'MRTP Act 1966 Sec 45',
@@ -404,14 +404,14 @@ function evaluateEligibility(questionnaire = {}) {
     });
   }
 
-  // Rule 3: Fire Safety NOC (Height > 15m or special residential building under UDCPR Chapter 6)
+  // Rule 3: Fire Safety NOC (Height >= 15.0m or special residential building under UDCPR Chapter 6 & Reg 1.3(93))
   const parsedHeight = parseFloat(buildingHeight) || 0;
-  if (parsedHeight > 15) {
+  if (parsedHeight >= 15.0) {
     applicable.push({
       id: 'rule_fire_noc',
       name: 'Chief Fire Officer (CFO) Provisional Fire NOC',
       status: 'APPLIES',
-      reason: `Proposed building height (${parsedHeight}m) exceeds the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(93) & Chapter 6. Chief Fire Officer (CFO) Provisional Fire Safety NOC and dedicated fire driveways are mandatory.`,
+      reason: `Proposed building height (${parsedHeight}m) meets or exceeds the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(93) & Chapter 6. Chief Fire Officer (CFO) Provisional Fire Safety NOC and dedicated fire driveways are mandatory.`,
       statutoryRef: 'UDCPR 2020 Chapter 6 & Fire Act 2006',
       nodeKey: 'fire_noc'
     });
@@ -420,7 +420,7 @@ function evaluateEligibility(questionnaire = {}) {
       id: 'rule_fire_noc',
       name: 'Chief Fire Officer (CFO) Special High-Rise Fire NOC',
       status: 'EXEMPT',
-      reason: `Proposed building height (${parsedHeight}m) is within the low-rise threshold under UDCPR 2020 Reg 1.3(93). No separate High-Rise CFO NOC is triggered, while general fire safety setbacks remain self-certified by the registered architect on the building blueprint.`,
+      reason: `Proposed building height (${parsedHeight}m) is below the 15.0m high-rise threshold under UDCPR 2020 Reg 1.3(93). No separate High-Rise CFO NOC is triggered, while general fire safety setbacks remain self-certified by the registered architect on the building blueprint.`,
       statutoryRef: 'UDCPR 2020 Chapter 6',
       nodeKey: 'fire_noc'
     });
@@ -568,6 +568,9 @@ function assembleDeterministicGraph(questionnaire = {}) {
   }
   if (includedIds.has('node_title') && includedIds.has('node_autodcr')) {
     edges.push({ id: 'e_title_autodcr', source: 'node_title', target: 'node_autodcr', label: 'Upload title proof to Appendix A-1' });
+  }
+  if (includedIds.has('node_mojani') && includedIds.has('node_tax_noc')) {
+    edges.push({ id: 'e_mojani_tax', source: 'node_mojani', target: 'node_tax_noc', label: 'Demarcated plot assessment & tax clearance' });
   }
   if (includedIds.has('node_mojani') && includedIds.has('node_autodcr')) {
     edges.push({ id: 'e_mojani_autodcr', source: 'node_mojani', target: 'node_autodcr', label: 'Coordinates mapped into CAD drawing' });
