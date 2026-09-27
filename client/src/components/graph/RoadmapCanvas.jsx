@@ -183,10 +183,11 @@ function InnerRoadmapCanvas({
   graphData,
   onSelectNode,
   selectedNodeId,
+  completedNodes = new Set(),
+  onToggleComplete,
   className
 }) {
   const [orientation, setOrientation] = useState('TB'); // 'TB' | 'LR'
-  const [completedNodes, setCompletedNodes] = useState(new Set());
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [activeStageFilter, setActiveStageFilter] = useState(null);
@@ -195,16 +196,10 @@ function InnerRoadmapCanvas({
 
   // Toggle node completion status
   const handleStatusChange = useCallback((nodeId, nextStatus) => {
-    setCompletedNodes((prev) => {
-      const next = new Set(prev);
-      if (nextStatus === 'completed') {
-        next.add(nodeId);
-      } else {
-        next.delete(nodeId);
-      }
-      return next;
-    });
-  }, []);
+    if (onToggleComplete) {
+      onToggleComplete(nodeId, nextStatus);
+    }
+  }, [onToggleComplete]);
 
   // Compute status for all nodes based on prerequisites DAG
   const computedGraph = useMemo(() => {
@@ -270,24 +265,44 @@ function InnerRoadmapCanvas({
     return { nodes: enrichedNodes, edges: enrichedEdges, stages };
   }, [graphData, completedNodes, selectedNodeId, orientation, handleStatusChange]);
 
-  // Initial focus on initial/first nodes at 100% zoom
+  // Sync ReactFlow internal state with computed nodes and edges
   useEffect(() => {
     setNodes(computedGraph.nodes);
     setEdges(computedGraph.edges);
+  }, [computedGraph.nodes, computedGraph.edges, setNodes, setEdges]);
 
-    if (computedGraph.nodes.length > 0) {
-      setTimeout(() => {
-        // Focus top node at comfortable readable 90% scale
+  // Initial focus on the first node ONLY when graphData/taskId changes (Not on completion!)
+  const lastTaskIdRef = React.useRef(null);
+  useEffect(() => {
+    const currentTaskId = graphData?.taskId || 'default-task';
+    if (lastTaskIdRef.current !== currentTaskId) {
+      lastTaskIdRef.current = currentTaskId;
+      if (computedGraph.nodes.length > 0) {
         const firstNode = computedGraph.nodes[0];
         if (firstNode) {
-          setCenter(firstNode.position.x + 150, firstNode.position.y + 120, {
-            zoom: 0.9,
-            duration: 500
-          });
+          setTimeout(() => {
+            setCenter(firstNode.position.x + 150, firstNode.position.y + 120, {
+              zoom: 0.9,
+              duration: 500
+            });
+          }, 100);
         }
-      }, 100);
+      }
     }
-  }, [computedGraph, setCenter, setNodes, setEdges]);
+  }, [graphData?.taskId, computedGraph.nodes, setCenter]);
+
+  // Smoothly center camera when active/selected node changes
+  useEffect(() => {
+    if (selectedNodeId && computedGraph.nodes.length > 0) {
+      const targetNode = computedGraph.nodes.find((n) => n.id === selectedNodeId);
+      if (targetNode) {
+        setCenter(targetNode.position.x + 150, targetNode.position.y + 100, {
+          zoom: 0.95,
+          duration: 500
+        });
+      }
+    }
+  }, [selectedNodeId, computedGraph.nodes, setCenter]);
 
   // Jump to specific stage
   const handleFocusStage = (stageName) => {
@@ -304,11 +319,12 @@ function InnerRoadmapCanvas({
   const handleFocusActionable = () => {
     const readyNode = computedGraph.nodes.find((n) => n.data.status === 'available');
     if (readyNode) {
-      setCenter(readyNode.position.x + 150, readyNode.position.y + 100, {
-        zoom: 1.0,
-        duration: 500
-      });
       if (onSelectNode) onSelectNode(readyNode.data);
+    } else {
+      const nextUncompleted = computedGraph.nodes.find((n) => n.data.status !== 'completed');
+      if (nextUncompleted && onSelectNode) {
+        onSelectNode(nextUncompleted.data);
+      }
     }
   };
 

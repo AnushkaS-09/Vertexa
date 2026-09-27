@@ -15,18 +15,29 @@ import {
   Sparkles,
   Info,
   CheckCircle2,
-  Filter
+  CircleDashed,
+  Lock,
+  Check,
+  RotateCcw,
+  PanelRightClose,
+  ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
 import clsx from 'clsx';
+import { API_ENDPOINTS } from '../../config/api';
+import ApplicabilitySummary from '../common/ApplicabilitySummary';
 
 export default function DocumentDrawer({
   graphData,
   selectedNode,
   onSelectNode,
+  completedNodes = new Set(),
+  onToggleComplete,
+  onClose,
+  onOpenQuestionnaire,
   className
 }) {
-  const [activeTab, setActiveTab] = useState('kit'); // 'kit' | 'inspector'
+  const [activeTab, setActiveTab] = useState('kit'); // 'kit' | 'inspector' | 'applicability'
   const [docSearch, setDocSearch] = useState('');
   const [checkedDocs, setCheckedDocs] = useState({});
   const [linkStatus, setLinkStatus] = useState(null);
@@ -110,13 +121,13 @@ export default function DocumentDrawer({
     return { totalDays, totalCost, totalDocs, bottlenecks };
   }, [graphData, masterDocList]);
 
-  // Government portal reachability checker
+  // Government portal reachability checker (Protected against SSRF)
   const handleCheckLink = async (url) => {
     if (!url) return;
     setLinkStatus({ loading: true });
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/link-status?url=${encodeURIComponent(url)}`,
+        API_ENDPOINTS.linkStatus(url),
         { timeout: 4000 }
       );
       setLinkStatus({
@@ -128,8 +139,8 @@ export default function DocumentDrawer({
       setLinkStatus({
         loading: false,
         reachable: false,
-        status: null,
-        error: err.message
+        status: err.response ? err.response.status : null,
+        error: err.response?.data?.reason || err.message
       });
     }
   };
@@ -138,6 +149,14 @@ export default function DocumentDrawer({
     window.print();
   };
 
+  const isStepCompleted = selectedNode ? completedNodes.has(selectedNode.id) : false;
+  const isStepAvailable = useMemo(() => {
+    if (!selectedNode || !graphData || !graphData.edges) return true;
+    const parentEdges = graphData.edges.filter((e) => e.target === selectedNode.id);
+    if (parentEdges.length === 0) return true;
+    return parentEdges.every((e) => completedNodes.has(e.source));
+  }, [selectedNode, graphData, completedNodes]);
+
   return (
     <aside
       className={clsx(
@@ -145,21 +164,22 @@ export default function DocumentDrawer({
         className
       )}
     >
-      {/* Header Tabs */}
-      <div className="flex border-b border-slate-800 bg-slate-950/70 p-2.5 gap-2 no-print shrink-0">
+      {/* Header Tabs with Minimize Button */}
+      <div className="flex items-center border-b border-slate-800 bg-slate-950/70 p-2.5 gap-2 no-print shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('kit')}
           className={clsx(
-            'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all',
+            'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
             activeTab === 'kit'
               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
           )}
+          title="Master Document Checklist & Metrics"
         >
-          <FileText className="w-4 h-4" />
-          <span>Master Dossier</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/80 text-indigo-300 font-mono border border-indigo-900/50">
+          <FileText className="w-3.5 h-3.5" />
+          <span>Dossier</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-950/80 text-indigo-300 font-mono border border-indigo-900/50">
             {checkedCount}/{masterDocList.length}
           </span>
         </button>
@@ -168,19 +188,56 @@ export default function DocumentDrawer({
           type="button"
           onClick={() => setActiveTab('inspector')}
           className={clsx(
-            'flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all',
+            'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
             activeTab === 'inspector'
               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
           )}
+          title="Inspect selected workflow step"
         >
-          <Search className="w-4 h-4" />
-          <span>Step Inspector</span>
+          <Search className="w-3.5 h-3.5" />
+          <span>Inspector</span>
           {selectedNode && (
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           )}
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('applicability')}
+          className={clsx(
+            'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
+            activeTab === 'applicability'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
+          )}
+          title="NOCs that apply vs are exempt for this plot"
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Applicability</span>
+        </button>
+
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-700 shrink-0 cursor-pointer"
+            title="Minimize/Close Right Sidebar"
+          >
+            <PanelRightClose className="w-4 h-4" />
+          </button>
+        )}
       </div>
+
+      {/* Tab 3: Applicability Overview */}
+      {activeTab === 'applicability' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <ApplicabilitySummary
+            eligibility={graphData?.eligibility}
+            onOpenQuestionnaire={onOpenQuestionnaire}
+          />
+        </div>
+      )}
 
       {/* Tab 1: Master Document Kit */}
       {activeTab === 'kit' && (
@@ -381,6 +438,52 @@ export default function DocumentDrawer({
                     <span>₹{Number(selectedNode.cost || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Step Completion Action Bar */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 flex items-center justify-between gap-3 shadow-xl">
+                <div className="flex items-center gap-2">
+                  {isStepCompleted ? (
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-xl border border-emerald-800/50">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      Step Completed
+                    </span>
+                  ) : isStepAvailable ? (
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-indigo-300 bg-indigo-950/60 px-2.5 py-1 rounded-xl border border-indigo-800/50">
+                      <CircleDashed className="w-4 h-4 text-indigo-400 animate-spin-slow" />
+                      Ready for Action
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400 bg-slate-900/90 px-2.5 py-1 rounded-xl border border-slate-800">
+                      <Lock className="w-3.5 h-3.5 text-slate-500" />
+                      Prereq Locked
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onToggleComplete && onToggleComplete(selectedNode.id, isStepCompleted ? 'available' : 'completed')}
+                  className={clsx(
+                    'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer',
+                    isStepCompleted
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
+                  )}
+                  title={isStepCompleted ? 'Undo step completion' : 'Mark this step completed and advance to next step'}
+                >
+                  {isStepCompleted ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Undo Done</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Mark as done →</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Plain Language Summary */}
