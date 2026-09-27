@@ -1,19 +1,13 @@
 {
-  "name": "civic-task-navigator",
-  "private": true,
+  "name": "vertex-monorepo",
   "version": "1.0.0",
-  "type": "module",
+  "private": true,
+  "description": "Municipal Bureaucracy Path Visualizer Monorepo",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.0"
+    "dev": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start": "node server/src/index.js",
+    "build": "npm --prefix client run build"
   }
 }

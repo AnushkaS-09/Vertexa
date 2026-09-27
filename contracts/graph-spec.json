@@ -1,0 +1,215 @@
+{
+  "taskId": "residential-building-permission-mh-full",
+  "taskTitle": "Full Municipal Permitting Pipeline: Residential Building (G+2 / Independent Bungalow)",
+  "jurisdiction": "Urban Local Bodies across Maharashtra (UDCPR 2020 / MahaBPAMS / RTS Act)",
+  "totalEstimatedDays": 90,
+  "totalEstimatedCostINR": 58500,
+  "legalReference": "Maharashtra Regional & Town Planning (MRTP) Act 1966 & UDCPR 2020",
+  "nodes": [
+    {
+      "id": "node_title",
+      "stage": "Stage 1: Revenue & Land Title",
+      "title": "Certified 7/12 Extract or CTS Property Card",
+      "department": "Revenue Dept & Land Records (Mahabhulekh / Aaple Sarkar)",
+      "type": "prerequisite",
+      "estimatedDays": 3,
+      "cost": 150,
+      "statutoryRule": "UDCPR 2020, Reg 2.2.3(a)",
+      "forms": [
+        "V.F. 7/12 Extract (issued within 6 months)",
+        "Property Register Card (मालमत्ता पत्रक)",
+        "Search Index-II from Sub-Registrar"
+      ],
+      "officialUrl": "https://bhulekh.mahabhumi.gov.in",
+      "plainLanguageSummary": "Proof that you hold unencumbered legal title with no government reservations, litigation, or liens.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_mojani",
+      "stage": "Stage 1: Revenue & Land Title",
+      "title": "Cadastral Measurement & Demarcation (Kayam Mojani)",
+      "department": "Taluka Inspector of Land Records (TILR) / Bhumi Abhilekh",
+      "type": "prerequisite",
+      "estimatedDays": 21,
+      "cost": 3000,
+      "statutoryRule": "UDCPR 2020, Reg 2.2.3(b)",
+      "forms": [
+        "Form No. 1 (Demarcation Application)",
+        "Certified Mojani Sheet (मोजणी नकाशा)"
+      ],
+      "officialUrl": "https://aaplesarkar.mahaonline.gov.in",
+      "plainLanguageSummary": "Official surveyor pins exact plot boundaries on the ground to certify street widening lines and road setbacks.",
+      "isBottleneck": true
+    },
+    {
+      "id": "node_tax_noc",
+      "stage": "Stage 1: Revenue & Land Title",
+      "title": "Municipal Property Tax No-Dues Clearance",
+      "department": "Municipal Assessment & Collection Department",
+      "type": "prerequisite",
+      "estimatedDays": 2,
+      "cost": 0,
+      "statutoryRule": "UDCPR 2020, Reg 2.2.3(f)",
+      "forms": [
+        "Current Assessment Year Paid Tax Receipt",
+        "No-Dues Certificate (NOC)"
+      ],
+      "officialUrl": "https://portal.mcgm.gov.in",
+      "plainLanguageSummary": "Validates that all open land tax dues up to the current fiscal quarter are fully cleared.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_autodcr",
+      "stage": "Stage 2: Architectural Scrutiny & PreDCR",
+      "title": "Architect CAD Plan Submission (AutoDCR Scrutiny)",
+      "department": "Town Planning Scrutiny Cell (MahaBPAMS)",
+      "type": "submission",
+      "estimatedDays": 10,
+      "cost": 15000,
+      "statutoryRule": "UDCPR 2020, Reg 2.2.1 & Reg 2.2.4",
+      "forms": [
+        "Appendix A-1 (Prescribed Application for Development)",
+        "Appendix B (Supervision Certificate by Council of Architecture registered Architect)",
+        "PreDCR CAD Sheet (.dwg) with layered setbacks and FSI tables",
+        "Structural Stability Certificate (Registered Structural Engineer)"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "Architect uploads floor plans into the state automated engine to test against setbacks, FSI, parking, and height limits.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_site_inspection",
+      "stage": "Stage 2: Architectural Scrutiny & PreDCR",
+      "title": "Site Inspection by Assistant Town Planner (ATP)",
+      "department": "Municipal Corporation / Council Town Planning Wing",
+      "type": "inspection",
+      "estimatedDays": 7,
+      "cost": 0,
+      "statutoryRule": "UDCPR 2020, Reg 2.4 & RTS Act",
+      "forms": [
+        "ATP Geo-Tagged Site Verification Checklist",
+        "Road Width & High Tension Wire Verification Report"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "Municipal junior engineer visits the ground to ensure actual road width and access match the blueprint.",
+      "isBottleneck": true
+    },
+    {
+      "id": "node_iod",
+      "stage": "Stage 2: Architectural Scrutiny & PreDCR",
+      "title": "Intimation of Disapproval (IOD) / Conditional Sanction",
+      "department": "Executive Engineer / Building Proposal Department",
+      "type": "conditional_approval",
+      "estimatedDays": 5,
+      "cost": 0,
+      "statutoryRule": "MRTP Act Section 45 & UDCPR Reg 2.5",
+      "forms": [
+        "IOD Letter with 15–20 conditional compliance clauses"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "Conditional green signal. Certifies plan compliance, but forbids construction until all parallel departmental NOCs are produced.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_tree_noc",
+      "stage": "Stage 3: Parallel Departmental NOCs",
+      "title": "Tree Authority NOC (Preservation & Re-plantation)",
+      "department": "Garden & Tree Authority Department",
+      "type": "clearance",
+      "estimatedDays": 14,
+      "cost": 2500,
+      "statutoryRule": "Maharashtra (Urban Areas) Protection & Preservation of Trees Act, 1975",
+      "forms": [
+        "Form A (Tree Census on Plot)",
+        "Affidavit for Compensatory Plantation"
+      ],
+      "officialUrl": "https://portal.mcgm.gov.in",
+      "plainLanguageSummary": "Mandatory survey ensuring no protected trees are felled without formal municipal permission and compensatory plantation deposits.",
+      "isBottleneck": true
+    },
+    {
+      "id": "node_hydraulic_noc",
+      "stage": "Stage 3: Parallel Departmental NOCs",
+      "title": "Hydraulic & Stormwater Drainage Sanction",
+      "department": "Hydraulic Engineer / Sewerage Operations",
+      "type": "clearance",
+      "estimatedDays": 10,
+      "cost": 5000,
+      "statutoryRule": "UDCPR 2020, Reg 2.2.5(d)",
+      "forms": [
+        "Sanction of Water Supply Connection Form",
+        "Stormwater Invert Level Layout Plan"
+      ],
+      "officialUrl": "https://portal.mcgm.gov.in",
+      "plainLanguageSummary": "Certifies the plot can discharge rainwater into municipal drains without causing localized street waterlogging.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_cc",
+      "stage": "Stage 4: Groundbreaking to Superstructure",
+      "title": "Commencement Certificate (CC) — Plinth Level",
+      "department": "Building Proposal Dept / Chief Officer",
+      "type": "permit",
+      "estimatedDays": 7,
+      "cost": 28000,
+      "statutoryRule": "UDCPR 2020, Reg 2.6",
+      "forms": [
+        "Appendix C (Sanction of Development Permission / CC)",
+        "Development Charges & Labor Cess Challan Receipt"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "The legal green flag allowing physical excavation and construction up to plinth level.",
+      "isBottleneck": false
+    },
+    {
+      "id": "node_plinth_check",
+      "stage": "Stage 4: Groundbreaking to Superstructure",
+      "title": "Mandatory Plinth Inspection & Superstructure CC",
+      "department": "Municipal Engineering Inspection Cell",
+      "type": "inspection",
+      "estimatedDays": 8,
+      "cost": 0,
+      "statutoryRule": "UDCPR 2020, Reg 2.8.4",
+      "forms": [
+        "Appendix G (Notice of Plinth Completion)",
+        "Plinth Verification Endorsement"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "Hard stop! Construction must pause when foundation reaches plinth height. Engineers verify setbacks before granting permission to cast upper slabs.",
+      "isBottleneck": true
+    },
+    {
+      "id": "node_oc",
+      "stage": "Stage 5: Habitation & Utilities",
+      "title": "Building Completion & Final Occupancy Certificate (OC)",
+      "department": "Town Planning Authority & Municipal Health Dept",
+      "type": "final_approval",
+      "estimatedDays": 15,
+      "cost": 1500,
+      "statutoryRule": "UDCPR 2020, Reg 2.10",
+      "forms": [
+        "Appendix H (Architect Completion Certificate)",
+        "Structural Engineer Final Stability Undertaking",
+        "Drainage Completion & Water Connection Certificate",
+        "Occupancy Certificate (Appendix I)"
+      ],
+      "officialUrl": "https://mahadma.maharashtra.gov.in",
+      "plainLanguageSummary": "Certifies the building matches the sanctioned blueprint, unlocking legal electricity meters, permanent drinking water, and property assessment.",
+      "isBottleneck": false
+    }
+  ],
+  "edges": [
+    { "id": "e_title_mojani", "source": "node_title", "target": "node_mojani", "label": "Title deed required for demarcation" },
+    { "id": "e_title_autodcr", "source": "node_title", "target": "node_autodcr", "label": "Upload title proof to Appendix A-1" },
+    { "id": "e_mojani_autodcr", "source": "node_mojani", "target": "node_autodcr", "label": "Coordinates mapped into CAD drawing" },
+    { "id": "e_tax_autodcr", "source": "node_tax_noc", "target": "node_autodcr", "label": "No-dues receipt required for scrutiny" },
+    { "id": "e_autodcr_site", "source": "node_autodcr", "target": "node_site_inspection", "label": "CAD scrutiny clearance triggers site visit" },
+    { "id": "e_site_iod", "source": "node_site_inspection", "target": "node_iod", "label": "ATP site clearance issues IOD" },
+    { "id": "e_iod_tree", "source": "node_iod", "target": "node_tree_noc", "label": "IOD Condition #4: Tree NOC" },
+    { "id": "e_iod_hydraulic", "source": "node_iod", "target": "node_hydraulic_noc", "label": "IOD Condition #7: Drainage sanction" },
+    { "id": "e_tree_cc", "source": "node_tree_noc", "target": "node_cc", "label": "Tree clearance submitted" },
+    { "id": "e_hydraulic_cc", "source": "node_hydraulic_noc", "target": "node_cc", "label": "Drainage compliance submitted" },
+    { "id": "e_cc_plinth", "source": "node_cc", "target": "node_plinth_check", "label": "Excavation to Plinth height" },
+    { "id": "e_plinth_oc", "source": "node_plinth_check", "target": "node_oc", "label": "Superstructure slabs & final finishes" }
+  ]
+}
