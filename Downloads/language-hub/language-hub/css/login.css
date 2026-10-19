@@ -1,0 +1,39 @@
+/* login.css — login page only */
+
+.login-page { min-height: 100vh; }
+.login-wrap { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+
+.login-intro {
+  background: var(--brand-dark);
+  color: #eaf2ef;
+  padding: 3rem;
+  display: flex; flex-direction: column; justify-content: center; gap: .75rem;
+}
+.login-intro h1 { font-size: 2.4rem; margin: .5rem 0 0; }
+.login-intro p { color: #c4dad3; max-width: 28rem; font-size: 1.05rem; }
+.glyph-row { list-style: none; display: flex; gap: .75rem; padding: 0; margin: 1rem 0 0; }
+.glyph-row li {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--soft); color: var(--accent);
+  display: grid; place-items: center;
+  font-family: var(--font-head); font-size: 1.7rem; font-weight: 700;
+}
+
+.login-panel { display: grid; place-items: center; padding: 2rem 1.25rem; }
+.login-panel form {
+  width: min(400px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2rem;
+}
+.btn-block { width: 100%; margin-top: .75rem; }
+.link-btn { background: none; border: 0; color: var(--brand); font: inherit; font-size: .9rem; cursor: pointer; text-decoration: underline; margin-top: .9rem; padding: .25rem 0; }
+code { background: #f1e9d9; padding: .05rem .35rem; border-radius: 4px; font-size: .85em; }
+
+@media (max-width: 800px) {
+  .login-wrap { grid-template-columns: 1fr; }
+  .login-intro { padding: 1.75rem 1.25rem; }
+  .login-intro h1 { font-size: 1.8rem; }
+  .login-intro p { font-size: .95rem; }
+}

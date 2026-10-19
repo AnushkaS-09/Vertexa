@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// Language Hub — Cloud Storage security rules.
+// These rules read the user's role and languages from Firestore (users/{uid}).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function profileData() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isProfessor() {
+      return request.auth != null && profileData().role == 'professor';
+    }
+
+    function isEnrolledIn(language) {
+      return request.auth != null && language in profileData().languages;
+    }
+
+    function allowedType() {
+      return request.resource.contentType.matches('application/pdf|application/msword|application/vnd\\.ms-powerpoint|application/vnd\\.ms-excel|application/vnd\\.openxmlformats-officedocument\\..*|text/plain|image/(png|jpeg)|audio/mpeg');
+    }
+
+    // Files live at materials/<language>/<file>
+    match /materials/{language}/{fileName} {
+      allow read: if isProfessor() || isEnrolledIn(language);
+
+      allow create: if isProfessor()
+        && language in ['german', 'spanish', 'japanese']
+        && request.resource.size > 0
+        && request.resource.size <= 20 * 1024 * 1024
+        && allowedType();
+
+      allow update: if false;
+      allow delete: if isProfessor();
+    }
+
+    // Everything else is closed.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

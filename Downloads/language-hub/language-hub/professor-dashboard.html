@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+    <div class="hero">
+      <h1 id="welcome">Welcome</h1>
+      <p>Here is how your three classes are doing.</p>
+    </div>
+
+    <div class="quick-actions">
+      <a class="btn btn-primary" href="attendance.html">Take attendance</a>
+      <a class="btn" href="materials.html#upload">Upload material</a>
+      <a class="btn" href="students.html#register">Register a student</a>
+    </div>
+
+    <section id="stats" class="grid grid-4" aria-label="Summary"></section>
+
+    <section class="section">
+      <div class="section-head"><h2>Manage a language</h2></div>
+      <div id="language-cards" class="grid grid-3"></div>
+    </section>
+
+    <section class="section two-col">
+      <div>
+        <div class="section-head"><h2>Attendance summary</h2></div>
+        <div id="attendance-summary"></div>
+      </div>
+      <div>
+        <div class="section-head"><h2>Recent uploads</h2><a href="materials.html" class="small">All materials</a></div>
+        <div class="card" id="recent-uploads"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/professor-dashboard.js"></script>
+</body>
+</html>

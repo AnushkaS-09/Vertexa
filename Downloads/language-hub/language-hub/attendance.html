@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/attendance.css">
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+
+    <!-- ===== Professor view ===== -->
+    <div id="professor-view" hidden>
+      <div class="page-head"><div><h1>Attendance</h1><p>Mark a class, edit past records and review each student's history.</p></div></div>
+
+      <section class="card">
+        <h2>Mark attendance for a class</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="pf-language">Language</label>
+            <select id="pf-language"></select>
+          </div>
+          <div class="field">
+            <label for="pf-date">Class date</label>
+            <input type="date" id="pf-date">
+          </div>
+        </div>
+        <p class="muted small" id="roster-summary"></p>
+        <div class="table-wrap" id="roster-wrap">
+          <table>
+            <thead><tr><th>Student</th><th>Status</th><th>Record</th></tr></thead>
+            <tbody id="roster-body"></tbody>
+          </table>
+        </div>
+        <div class="row" style="margin-top:1rem">
+          <button class="btn btn-primary" id="save-attendance" type="button">Save attendance</button>
+          <button class="btn" id="mark-all" type="button">Mark all present</button>
+        </div>
+        <p class="muted small" style="margin:.75rem 0 0">Saving a date that already has records updates them, so duplicates cannot be created.</p>
+      </section>
+
+      <section class="card section">
+        <h2>Student attendance history</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="hist-language">Language</label>
+            <select id="hist-language"></select>
+          </div>
+          <div class="field">
+            <label for="hist-student">Student</label>
+            <select id="hist-student"></select>
+          </div>
+        </div>
+        <div id="hist-summary"></div>
+        <div id="hist-table"></div>
+      </section>
+    </div>
+
+    <!-- ===== Student view ===== -->
+    <div id="student-view" hidden>
+      <div class="page-head"><div><h1>My attendance</h1><p>Percentages are worked out separately for each language.</p></div></div>
+      <div id="student-overview" class="grid grid-3"></div>
+      <section class="section" id="student-detail"></section>
+    </div>
+
+  </main>
+
+  <script type="module" src="js/attendance.js"></script>
+</body>
+</html>

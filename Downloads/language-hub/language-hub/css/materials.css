@@ -1,0 +1,7 @@
+/* materials.css — learning materials page */
+
+#upload .progress { margin: .25rem 0; }
+#upload-btn { margin-top: .5rem; }
+#upload-error { margin-top: .5rem; }
+#upload-progress { margin: .5rem 0 1rem; }
+.field input[type="file"] { border: 1px dashed #c9bca6; border-radius: 8px; padding: .65rem .75rem; background: #fff; }

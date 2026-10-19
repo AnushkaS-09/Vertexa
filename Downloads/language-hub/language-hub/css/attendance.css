@@ -1,0 +1,40 @@
+/* attendance.css — attendance page (professor and student views) */
+
+/* Present / Absent / Leave radio buttons that look like a segmented control */
+.segmented { display: inline-flex; border: 1px solid #d3c8b6; border-radius: 8px; overflow: hidden; background: #fff; }
+.segmented label { margin: 0; }
+.segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented span {
+  display: block; min-width: 76px; text-align: center;
+  padding: .55rem .9rem; cursor: pointer; font-size: .9rem; font-weight: 600;
+  border-right: 1px solid #d3c8b6; color: var(--muted);
+}
+.segmented label:last-child span { border-right: 0; }
+.segmented input:focus-visible + span { outline: 3px solid #e0a93a; outline-offset: -3px; }
+.segmented input[value="present"]:checked + span { background: var(--ok); color: #fff; }
+.segmented input[value="absent"]:checked + span { background: var(--danger); color: #fff; }
+.segmented input[value="leave"]:checked + span { background: #d9a22b; color: #fff; }
+
+.student-cell strong { display: block; }
+.student-cell small { color: var(--muted); }
+td select.inline-status { min-height: 38px; width: auto; padding: .25rem .5rem; }
+
+/* Student view: one clickable card per language */
+.att-card {
+  text-align: left; font: inherit; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-top: 5px solid var(--accent);
+  border-radius: var(--radius); padding: 1.1rem;
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.att-card:hover { box-shadow: 0 4px 14px rgba(60,40,10,.1); }
+.att-card.selected { outline: 3px solid var(--accent); outline-offset: 1px; }
+.att-card .lang-name { font-family: var(--font-head); font-size: 1.15rem; font-weight: 600; }
+.att-card small { color: var(--muted); }
+
+#hist-summary { margin: .5rem 0 1rem; }
+#hist-summary .progress-row { margin-bottom: 1rem; }
+
+@media (max-width: 600px) {
+  .segmented span { min-width: 0; padding: .55rem .6rem; }
+}

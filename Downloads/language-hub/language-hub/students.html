@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/students.css">
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+    <div class="page-head">
+      <div><h1>Students</h1><p>Register students, manage their enrolments and see attendance at a glance.</p></div>
+    </div>
+
+    <section class="card" id="register">
+      <h2>Register a new student</h2>
+      <p class="muted small">This creates the student's login. Share the email and temporary password with them; they can change it with “Forgot your password?” on the login page.</p>
+      <form id="register-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="reg-name">Full name</label>
+            <input type="text" id="reg-name" autocomplete="off" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="reg-password">Temporary password</label>
+            <input type="password" id="reg-password" autocomplete="new-password">
+            <span class="hint">At least 8 characters</span>
+          </div>
+          <fieldset class="field">
+            <legend>Enrol in</legend>
+            <div id="reg-languages"></div>
+          </fieldset>
+        </div>
+        <div id="register-error" class="alert alert-error" role="alert" hidden></div>
+        <button class="btn btn-primary" id="register-btn" type="submit">Register student</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>All students <span class="muted" id="count"></span></h2></div>
+      <div class="filters">
+        <select id="filter-language" aria-label="Filter by language"></select>
+        <input type="search" id="filter-search" placeholder="Search by name or email" aria-label="Search students">
+      </div>
+      <div id="students-list"></div>
+    </section>
+  </main>
+
+  <dialog class="modal" id="edit-dialog">
+    <h3>Edit enrolment</h3>
+    <p class="muted small" id="edit-name"></p>
+    <div id="edit-languages"></div>
+    <p class="muted small">Removing a language hides its materials from the student. Their past attendance records are kept.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" id="edit-cancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="edit-save" type="button">Save</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/students.js"></script>
+</body>
+</html>

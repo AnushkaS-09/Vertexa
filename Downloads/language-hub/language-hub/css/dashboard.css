@@ -1,0 +1,27 @@
+/* dashboard.css — professor and student dashboards */
+
+.hero { margin-bottom: 1.5rem; }
+.hero h1 { margin-bottom: .25rem; }
+.hero p { color: var(--muted); margin: 0; }
+
+.quick-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.25rem; align-items: start; }
+
+.item-list { list-style: none; margin: 0; padding: 0; }
+.item-list li { padding: .8rem 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.item-list li:last-child { border-bottom: 0; }
+.item-list li:first-child { padding-top: 0; }
+.item-title { font-weight: 600; display: block; }
+.item-sub { color: var(--muted); font-size: .85rem; }
+.item-badges { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .25rem; }
+
+.due-pill { white-space: nowrap; font-size: .8rem; font-weight: 700; padding: .2rem .6rem; border-radius: 999px; background: var(--brand-soft); color: var(--brand-dark); }
+.due-pill.soon { background: var(--warn-soft); color: var(--warn); }
+.due-pill.today { background: var(--danger-soft); color: var(--danger); }
+
+.lang-lines .bar-mini { margin-top: .35rem; }
+
+@media (max-width: 900px) {
+  .two-col { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+    <div class="hero">
+      <h1 id="welcome">Welcome</h1>
+      <p>Your courses, attendance and upcoming deadlines.</p>
+    </div>
+
+    <section>
+      <div class="section-head"><h2>My languages</h2></div>
+      <div id="language-cards" class="grid grid-3"></div>
+    </section>
+
+    <section class="section two-col">
+      <div>
+        <div class="section-head"><h2>Recent materials</h2><a href="materials.html" class="small">All materials</a></div>
+        <div class="card" id="recent-materials"></div>
+      </div>
+      <div>
+        <div class="section-head"><h2>Upcoming deadlines</h2></div>
+        <div class="card" id="deadlines"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/student-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+/* profile.css — profile page */
+
+.profile-card { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+.avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--brand-soft); color: var(--brand-dark);
+  display: grid; place-items: center;
+  font-family: var(--font-head); font-size: 2rem; font-weight: 700;
+}
+.details { margin: 0; flex: 1; min-width: 240px; display: grid; gap: .9rem; }
+.details dt { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.details dd { margin: .1rem 0 0; font-size: 1.05rem; word-break: break-word; }
+.details .badge { margin-right: .35rem; }

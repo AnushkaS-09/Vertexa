@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+    <div class="page-head"><div><h1>Profile</h1><p>Your account details.</p></div></div>
+
+    <section class="card profile-card">
+      <div class="avatar" id="avatar" aria-hidden="true"></div>
+      <dl class="details">
+        <div><dt>Name</dt><dd id="p-name"></dd></div>
+        <div><dt>Email</dt><dd id="p-email"></dd></div>
+        <div><dt>Role</dt><dd id="p-role"></dd></div>
+        <div><dt>Languages</dt><dd id="p-languages"></dd></div>
+        <div><dt>Member since</dt><dd id="p-since"></dd></div>
+      </dl>
+    </section>
+
+    <section class="card section">
+      <h2>Password</h2>
+      <p class="muted">We will email a link to your address so you can choose a new password.</p>
+      <button class="btn" id="reset-btn" type="button">Send password reset email</button>
+    </section>
+  </main>
+
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

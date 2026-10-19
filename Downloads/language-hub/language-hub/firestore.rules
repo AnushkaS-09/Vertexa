@@ -1,0 +1,119 @@
+rules_version = '2';
+
+// Language Hub — Firestore security rules.
+// The role is stored in users/{uid}.role. Only the professor account (created by you in the
+// Firebase console) has role == "professor"; nobody can change roles from the app.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function isProfessor() {
+      return signedIn()
+        && exists(userDoc(request.auth.uid))
+        && get(userDoc(request.auth.uid)).data.role == 'professor';
+    }
+
+    function isLanguage(l) {
+      return l in ['german', 'spanish', 'japanese'];
+    }
+
+    function validLanguageList(langs) {
+      return langs is list && langs.hasOnly(['german', 'spanish', 'japanese']);
+    }
+
+    /* ---------- users ---------- */
+    match /users/{userId} {
+      // A user can read their own profile; the professor can read everyone's.
+      allow get: if signedIn() && (request.auth.uid == userId || isProfessor());
+      allow list: if isProfessor();
+
+      allow create:
+        // (a) The professor registers a student (Students page).
+        if (isProfessor()
+            && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'languages', 'createdAt'])
+            && request.resource.data.role == 'student'
+            && request.resource.data.name is string
+            && request.resource.data.email is string
+            && validLanguageList(request.resource.data.languages))
+        // (b) A new user creates their OWN profile on the "Create account" form.
+        //     It can only be a student with no languages, so nobody can self-assign
+        //     the professor role or enrol themselves in a course.
+        || (signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'languages', 'createdAt'])
+            && request.resource.data.role == 'student'
+            && request.resource.data.languages == []
+            && request.resource.data.name is string
+            && request.resource.data.name.size() > 0
+            && request.resource.data.name.size() <= 80
+            && request.resource.data.email == request.auth.token.email
+            && request.resource.data.createdAt == request.time);
+
+      // The professor may change a student's enrolment (and nothing else).
+      allow update: if isProfessor()
+        && resource.data.role == 'student'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['languages'])
+        && validLanguageList(request.resource.data.languages);
+
+      allow delete: if false;
+    }
+
+    /* ---------- materials (metadata) ---------- */
+    function validMaterial(d) {
+      return d.keys().hasAll(['title', 'description', 'language', 'category', 'fileName', 'storagePath', 'downloadURL', 'uploadedAt', 'uploadedBy'])
+        && d.keys().hasOnly(['title', 'description', 'language', 'category', 'fileName', 'fileType', 'fileSize', 'storagePath', 'downloadURL', 'uploadedAt', 'uploadedBy', 'deadline'])
+        && isLanguage(d.language)
+        && d.category in ['Notes', 'Worksheets', 'Assignments', 'Tests', 'Other']
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && d.description is string && d.description.size() <= 1000;
+    }
+
+    match /materials/{materialId} {
+      // Students only see materials for languages they are enrolled in.
+      allow read: if isProfessor()
+        || (signedIn()
+            && exists(userDoc(request.auth.uid))
+            && resource.data.language in get(userDoc(request.auth.uid)).data.languages);
+
+      allow create: if isProfessor()
+        && validMaterial(request.resource.data)
+        && request.resource.data.uploadedBy == request.auth.uid;
+
+      allow update: if isProfessor() && validMaterial(request.resource.data);
+      allow delete: if isProfessor();
+    }
+
+    /* ---------- attendance ---------- */
+    // Document ID must be  <language>_<studentUid>_<YYYY-MM-DD>, which makes it impossible
+    // to have two records for the same student, language and date.
+    function validAttendance(id, d) {
+      return d.keys().hasOnly(['studentId', 'language', 'date', 'status', 'markedBy', 'updatedAt'])
+        && d.keys().hasAll(['studentId', 'language', 'date', 'status', 'markedBy', 'updatedAt'])
+        && isLanguage(d.language)
+        && d.status in ['present', 'absent', 'leave']
+        && d.date is string
+        && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && id == d.language + '_' + d.studentId + '_' + d.date
+        && d.markedBy == request.auth.uid;
+    }
+
+    match /attendance/{attendanceId} {
+      // Students can read only their own records. The professor can read all.
+      allow read: if isProfessor() || (signedIn() && resource.data.studentId == request.auth.uid);
+      allow create, update: if isProfessor() && validAttendance(attendanceId, request.resource.data);
+      allow delete: if isProfessor();
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

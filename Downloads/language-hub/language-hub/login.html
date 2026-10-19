@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/login.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="login-page">
+  <main class="login-wrap">
+    <section class="login-intro">
+      <div class="brand-mark">L</div>
+      <h1>Language Hub</h1>
+      <p>Class materials, attendance and assessments for German, Spanish and Japanese, all in one place.</p>
+      <ul class="glyph-row" aria-hidden="true">
+        <li style="--accent:#b7791f;--soft:#fbf1dc">ß</li>
+        <li style="--accent:#c2512f;--soft:#fbe7df">ñ</li>
+        <li style="--accent:#4a4fa3;--soft:#e6e7f6">あ</li>
+      </ul>
+    </section>
+
+    <section class="login-panel">
+      <form id="login-form" novalidate>
+        <h2 id="form-title">Sign in</h2>
+        <p class="muted" id="form-intro">Sign in with the email and password you registered with.</p>
+
+        <div id="config-alert" class="alert alert-warn" hidden>
+          Firebase is not configured yet. Open <code>js/firebase-config.js</code> and add your project's values (see README.md).
+        </div>
+        <div id="form-alert" class="alert alert-error" role="alert" hidden></div>
+
+        <div class="field" id="name-field" hidden>
+          <label for="name">Full name</label>
+          <input type="text" id="name" autocomplete="name" maxlength="80">
+          <span class="field-error" id="name-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" autocomplete="username" placeholder="you@example.com">
+          <span class="field-error" id="email-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" autocomplete="current-password">
+          <span class="field-error" id="password-error"></span>
+        </div>
+
+        <div class="field" id="confirm-field" hidden>
+          <label for="confirm-password">Confirm password</label>
+          <input type="password" id="confirm-password" autocomplete="new-password">
+          <span class="field-error" id="confirm-error"></span>
+        </div>
+
+        <label class="check"><input type="checkbox" id="show-password"> Show password</label>
+
+        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign in</button>
+        <button type="button" class="link-btn" id="forgot-btn">Forgot your password?</button>
+        <br>
+        <button type="button" class="link-btn" id="mode-btn">New here? Create an account</button>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

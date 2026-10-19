@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materials · Language Hub</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/materials.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-loading">
+  <header class="topbar"><button class="icon-btn" id="menu-toggle" aria-label="Open menu" type="button">☰</button><span>Language Hub</span></header>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="content" id="main">
+    <div class="page-head">
+      <div><h1>Learning materials</h1><p id="page-sub">Notes, worksheets, assignments and tests.</p></div>
+    </div>
+
+    <!-- Professor only -->
+    <section class="card" id="upload" hidden>
+      <h2>Upload a material</h2>
+      <form id="upload-form" novalidate>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="title">Title</label>
+            <input type="text" id="title" maxlength="120" placeholder="e.g. Chapter 3 – Present tense">
+          </div>
+          <div class="field full">
+            <label for="description">Description <span class="muted">(optional)</span></label>
+            <textarea id="description" maxlength="1000" placeholder="A short note for students"></textarea>
+          </div>
+          <div class="field">
+            <label for="language">Language</label>
+            <select id="language"></select>
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category"></select>
+          </div>
+          <div class="field">
+            <label for="deadline">Deadline <span class="muted">(optional)</span></label>
+            <input type="date" id="deadline">
+          </div>
+          <div class="field">
+            <label for="material-url">PDF/Document link</label>
+            <input type="url" id="material-url" placeholder="https://drive.google.com" required>
+          </div>
+        </div>
+        <div id="upload-error" class="alert alert-error" role="alert" hidden></div>
+        <div id="upload-progress" hidden>
+          <div class="progress"><span class="progress-fill good" id="upload-bar" style="width:0"></span></div>
+          <p class="muted small" id="upload-status"></p>
+        </div>
+        <button class="btn btn-primary" id="upload-btn" type="submit">Upload</button>
+      </form>
+    </section>
+
+    <section class="section">
+      <div class="filters">
+        <select id="filter-language" aria-label="Filter by language"></select>
+        <select id="filter-category" aria-label="Filter by category"></select>
+        <input type="search" id="filter-search" placeholder="Search by title" aria-label="Search materials">
+      </div>
+      <div id="materials-list" class="materials-grid"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/materials.js"></script>
+</body>
+</html>
